@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Recoverly Console</title>
+  <link rel="stylesheet" href="{{ url_for('local_console.static', filename='local_console/console.css') }}">
+</head>
+<body>
+  <header><strong>RECOVERLY</strong><span>Agent Console</span><a href="/health">System status</a></header>
+  <main>
+    <aside class="sessions">
+      <div class="section-head"><b>Sessions</b><button id="new-session" title="New session">+</button></div>
+      <div id="session-list">
+        {% for item in sessions %}<a class="session {% if item.id == session.id %}active{% endif %}" href="/console?session={{ item.id }}" data-id="{{ item.id }}"><b>{{ item.title }}</b><small>{{ item.preview or 'No messages yet' }}</small></a>{% endfor %}
+      </div>
+    </aside>
+    <section class="chat">
+      <div class="chat-head"><div><h1 id="session-title">{{ session.title }}</h1><p>Local multi-agent recovery workflow</p></div><span class="online">● Online</span></div>
+      <div id="messages" aria-live="polite"></div>
+      <form id="composer"><div class="composer-field"><textarea id="message-input" placeholder="Case activity appears here after documents are uploaded in Slack." autocomplete="off" required></textarea><div id="mention-menu" class="mention-menu" hidden></div></div><button>Send</button></form>
+    </section>
+    <aside class="participants">
+      <div class="section-head"><b>Participants</b></div>
+      <div class="operator"><span>HC</span><div><b>Operator</b><small>You control approvals and dispatch.</small></div></div>
+      {% for agent in agents %}<article class="agent"><div class="dot"></div><div><b>{{ agent.name }}</b><small>{{ agent.description }}</small></div></article>{% endfor %}
+    </aside>
+  </main>
+  <script>
+    let session = {{ session|tojson }};
+    let mentionIndex = 0;
+    const agents = {{ agents|tojson }};
+    const messages = document.getElementById('messages');
+    const input = document.getElementById('message-input');
+    const mentionMenu = document.getElementById('mention-menu');
+    function escapeHtml(value) { const d = document.createElement('div'); d.textContent = value; return d.innerHTML; }
+    function highlightMentions(value) {
+      const escaped = escapeHtml(value);
+      const handles = agents.map(agent => agent.id.replace(/[.*+?^${}()|[\]\\]/g, '\$&')).join('|');
+      return escaped.replace(new RegExp(`@(${handles})\\b`, 'gi'), '<span class="agent-mention">@$1</span>');
+    }
+    function linkify(value) { return highlightMentions(value).replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener">$1</a>'); }
+    function formatMessage(value) {
+      return String(value).split(/(```[\s\S]*?```)/g).map(part => {
+        const code = part.match(/^```(?:[a-z]+)?\n?([\s\S]*?)```$/i);
+        if (code) return `<pre class="message-code">${escapeHtml(code[1].trim())}</pre>`;
+        return linkify(part).replaceAll('\n', '<br>');
+      }).join('');
+    }
+    const delay = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds));
+    async function showThinking(message) {
+      if (message.actor === 'operator') return;
+      const note = document.createElement('article');
+      note.className = `thinking-note ${message.actor}`;
+      note.innerHTML = `<span>${escapeHtml(message.actor.replaceAll('_', ' '))}</span><b>Reasoning</b><i>Preparing response…</i>`;
+      messages.append(note);
+      messages.scrollTop = messages.scrollHeight;
+      await delay(550);
+      note.remove();
+    }
+    function render() {
+      document.getElementById('session-title').textContent = session.title;
+      messages.innerHTML = (session.messages || []).map(message => {
+        const time = new Date(message.created_at).toLocaleTimeString([], {hour:'numeric', minute:'2-digit'});
+        return `<article class="message ${message.actor}"><div class="message-meta">${escapeHtml(message.actor.replaceAll('_', ' '))}</div><div class="bubble">${formatMessage(message.body)}${message.actions?.length ? `<div class="actions">${message.actions.map(action => `<button data-message="${message.id}" data-action="${action.id}">${escapeHtml(action.label)}</button>`).join('')}</div>` : ''}</div><div class="message-time">${time} <span>UTC</span></div></article>`;
+      }).join('');
+      messages.scrollTop = messages.scrollHeight;
+      document.querySelectorAll('[data-action]').forEach(button => button.onclick = async () => {
+        button.disabled = true;
+        const response = await fetch(`/console/api/sessions/${session.id}/actions`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({message_id:button.dataset.message, action_id:button.dataset.action})});
+        const data = await response.json();
+        if (!response.ok) alert(data.error || 'The action could not be completed.'); else { session = data; render(); }
+        button.disabled = false;
+      });
+    }
+    function mentionCandidates() {
+      const match = input.value.match(/@([a-zA-Z_]*)$/);
+      if (!match) return {match:null, candidates:[]};
+      const query = match[1].toLowerCase();
+      return {match, candidates:agents.filter(agent => agent.id.startsWith(query) || agent.name.toLowerCase().startsWith(query))};
+    }
+    function renderMentions() {
+      const {match, candidates} = mentionCandidates();
+      if (!match || !candidates.length) { mentionMenu.hidden = true; return; }
+      mentionIndex = Math.min(mentionIndex, candidates.length - 1);
+      mentionMenu.innerHTML = candidates.map((agent, index) => `<button type="button" class="mention-option ${index === mentionIndex ? 'selected' : ''}" data-handle="${agent.id}"><span class="mention-dot"></span><span><b>${escapeHtml(agent.name)}</b><small>@${escapeHtml(agent.id)}</small></span><em>Agent</em></button>`).join('');
+      mentionMenu.hidden = false;
+      mentionMenu.querySelectorAll('[data-handle]').forEach(button => button.onclick = () => chooseMention(button.dataset.handle));
+    }
+    function chooseMention(handle) {
+      input.value = input.value.replace(/@[a-zA-Z_]*$/, `@${handle} `);
+      mentionMenu.hidden = true;
+      input.focus();
+    }
+    input.addEventListener('input', () => { mentionIndex = 0; renderMentions(); });
+    input.addEventListener('keydown', event => {
+      const {candidates} = mentionCandidates();
+      if (mentionMenu.hidden || !candidates.length) return;
+      if (event.key === 'ArrowDown') { event.preventDefault(); mentionIndex = (mentionIndex + 1) % candidates.length; renderMentions(); }
+      if (event.key === 'ArrowUp') { event.preventDefault(); mentionIndex = (mentionIndex - 1 + candidates.length) % candidates.length; renderMentions(); }
+      if (event.key === 'Enter' || event.key === 'Tab') { event.preventDefault(); chooseMention(candidates[mentionIndex].id); }
+      if (event.key === 'Escape') mentionMenu.hidden = true;
+    });
+    document.getElementById('composer').onsubmit = async event => {
+      event.preventDefault(); const text = input.value.trim(); if (!text) return;
+      const previousCount = (session.messages || []).length;
+      const response = await fetch(`/console/api/sessions/${session.id}/messages`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({text})});
+      const data = await response.json();
+      if (!response.ok) { alert(data.error || 'The message could not be processed.'); return; }
+      const addedMessages = data.messages.slice(previousCount);
+      session = {...data, messages:data.messages.slice(0, previousCount)};
+      input.value = '';
+      for (const message of addedMessages) {
+        if (message.actor !== 'operator') await showThinking(message);
+        session.messages.push(message);
+        render();
+      }
+    };
+    document.getElementById('new-session').onclick = async () => { const response = await fetch('/console/api/sessions', {method:'POST'}); const data = await response.json(); location.href = `/console?session=${data.id}`; };
+    render();
+  </script>
+</body>
+</html>
