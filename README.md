@@ -28,7 +28,6 @@ Recoverly connects to more than three external applications in the working flow:
 |---|---|
 | Slack | Contract and invoice intake, operator approvals, recovery cards, and payment receipts |
 | Payment options | Paystack card checkout, Hedera USDC transfers, and wire/ACH bank instructions; confirmation follows the selected method |
-| HashPack | Buyer wallet used to send the Hedera Testnet USDC payment in the demo |
 | Resend | Approved demand/reminder email delivery and settlement notifications |
 | Gmail | Inbox used in the demo to receive and review collection notices and payment receipts; email delivery uses Resend, with no direct Gmail API integration |
 | Twilio | Operator-approved buyer calls and call-status updates |
@@ -209,7 +208,7 @@ The operator reviews all approve/revise/reject cards in that channel. Do not ena
 
 ## Running the role adapters
 
-The prototype can run recovery roles as separate processes when the agent-runtime credentials are configured. Start only the roles needed for the workflow being demonstrated:
+The local application runs with `python -m src.webapp`. The legacy remote role adapters below require an optional agent runtime and credentials, which are not included in the default installation. These commands are reference entry points for that optional integration:
 
 ```powershell
 .venv/Scripts/python.exe -m src.agents.preflight_agent

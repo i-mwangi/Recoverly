@@ -5,7 +5,12 @@ import os
 from dataclasses import dataclass
 from typing import Final
 
-from band.client.rest import ChatMessageRequest, ChatMessageRequestMentionsItem, RestClient
+try:
+    from band.client.rest import ChatMessageRequest, ChatMessageRequestMentionsItem, RestClient
+except ModuleNotFoundError as error:
+    if error.name != "band":
+        raise
+    RestClient = None
 
 from src.config import settings
 
@@ -54,6 +59,8 @@ def sender_api_key(sender_role: str) -> str:
 
 
 def push_message(body: str, *, sender_role: str, target_role: str = CONCIERGE_ROLE) -> PushResult:
+    if RestClient is None:
+        return PushResult(ok=False, skipped_reason="optional remote agent runtime is not installed")
     target = resolve_target(target_role)
     api_key = sender_api_key(sender_role)
     room_id = os.getenv("BAND_ROOM_ID", "").strip()

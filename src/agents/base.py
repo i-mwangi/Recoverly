@@ -11,8 +11,15 @@ from collections import OrderedDict
 from datetime import datetime, timezone
 from typing import Any, Final, Sequence
 
-from band import Agent, PlatformMessage
-from band.core.simple_adapter import SimpleAdapter
+try:
+    from band import Agent, PlatformMessage
+    from band.core.simple_adapter import SimpleAdapter
+except ModuleNotFoundError as error:
+    if error.name != "band":
+        raise
+    Agent = None
+    PlatformMessage = Any
+    SimpleAdapter = object
 from dotenv import load_dotenv
 
 from src.agents._utils import append_jsonl_locked, detect_anomaly, strip_fenced_blocks
@@ -390,6 +397,12 @@ async def _serve(agent: Agent, log: logging.Logger) -> int:
 
 
 def run_agent(adapter_cls: type[BandAgentAdapter]) -> int:
+    if Agent is None:
+        logging.getLogger(__name__).error(
+            "The optional remote agent runtime is not installed. "
+            "Start the local application with python -m src.webapp."
+        )
+        return 1
     role_upper = adapter_cls.role.upper()
     agent_id = os.getenv(f"BAND_{role_upper}_AGENT_ID", "")
     api_key = os.getenv(f"BAND_{role_upper}_API_KEY", "")
