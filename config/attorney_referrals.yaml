@@ -1,0 +1,67 @@
+# Attorney Referrals Mock Data (D-031, 2026-06-10)
+#
+# Shown to operator when `mode == "attorney_recommended"` (invoice > $40K) and operator picks
+# the "Skip — Get Attorney Referrals" Concierge button. Per D-021, Recoverly takes ZERO
+# referral fee in v1 demo — this is a public-good directory, not commercial implication.
+#
+# All 3 firms below are MOCK placeholders. v2 will integrate a vetted real referral network
+# (still no fee per D-021 to keep the Originality/integrity narrative).
+#
+# Source of truth: this file. Pre-flight Agent reads it via the `load_attorney_referrals()`
+# helper in `src/preflight/referrals.py` (to be built in build window). Output is rendered
+# in the Concierge `[Skip — Get Referrals]` modal with copy-to-clipboard buttons per firm.
+
+attorneys:
+  - firm_id: "mock-firm-pacific-cross-border"
+    name: "[Mock Firm 1 — Pacific Cross-Border]"
+    jurisdiction:
+      - "CA"
+      - "WA"
+      - "Pan-US (cross-border specialty)"
+    specialty: "Cross-border commercial collections, B2B trade disputes"
+    typical_fee_structure: "33% contingency, no upfront retainer"
+    contact_email: "referral@mock-pacific-cross-border.example"
+    contact_phone: "+1-555-MOCK-001"
+    languages:
+      - "English"
+      - "Mandarin"
+      - "Cantonese"
+    typical_response_time_business_days: 2
+    notes: "Mock placeholder. In v2 we will partner with a real firm that handles Asia-to-US B2B collections."
+
+  - firm_id: "mock-firm-atlantic-trade"
+    name: "[Mock Firm 2 — Atlantic Trade Disputes]"
+    jurisdiction:
+      - "NY"
+      - "International (NY law contracts)"
+      - "AAA arbitration certified"
+    specialty: "International trade disputes, AAA arbitration filings, demand letter to litigation pipeline"
+    typical_fee_structure: "33% contingency + $500 evaluation upfront (refundable if firm declines)"
+    contact_email: "referral@mock-atlantic-trade.example"
+    contact_phone: "+1-555-MOCK-002"
+    languages:
+      - "English"
+      - "Spanish"
+    typical_response_time_business_days: 3
+    notes: "Mock placeholder. v2 partner candidate: AAA-certified firm with cross-border invoicing track record."
+
+  - firm_id: "mock-firm-delaware-corporate"
+    name: "[Mock Firm 3 — Delaware Corporate Enforcement]"
+    jurisdiction:
+      - "DE"
+      - "Multi-state corporate"
+      - "Bankruptcy-adjacent collections"
+    specialty: "Delaware-incorporated debtor enforcement, post-bankruptcy claims, judgment recovery"
+    typical_fee_structure: "30% contingency on recovery, no upfront"
+    contact_email: "referral@mock-delaware-corporate.example"
+    contact_phone: "+1-555-MOCK-003"
+    languages:
+      - "English"
+    typical_response_time_business_days: 2
+    notes: "Mock placeholder. Specialty fit when debtor entity is DE-incorporated (~60% of US tech SMEs)."
+
+# How to pick (operator guidance shown in Concierge modal):
+# - If customer is West Coast (CA/WA/OR) → Mock Firm 1 (Pacific specialty)
+# - If contract specifies NY law or AAA arbitration → Mock Firm 2 (Atlantic Trade)
+# - If customer is Delaware-incorporated → Mock Firm 3 (DE specialty)
+# - If unsure → Mock Firm 1 (most cross-border experience)

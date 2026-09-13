@@ -1,0 +1,231 @@
+{
+  "_meta": {
+    "schema_version": "1.0",
+    "description": "Per-case state fixture for Recoverly v3 demo. One case per main demo scenario, mapping to the 4 customers in customer_history.json. Mirrors the `cases` table schema in docs/01-database-schema.md. Drives the case scheduler + active state in v1 demo (in-memory; Redis in production).",
+    "generated_at": "2026-06-10",
+    "linked_decisions": ["D-024", "D-025", "D-026", "D-028", "D-031", "D-032"],
+    "linked_schema": "docs/01-database-schema.md → Section 4 cases"
+  },
+
+  "cases": [
+    {
+      "case_id": "case-1234",
+      "invoice_id": "inv-1234",
+      "customer_id": "cust-abc-corp",
+      "mode": "in_spot",
+      "pattern_tag": "escalation_history",
+      "contract_clauses": {
+        "governing_law": "New York",
+        "forum_selection": "Southern District of NY",
+        "late_fee_clause": "1.5% per month after Day 30",
+        "late_fee_rate_monthly": 1.5,
+        "arbitration_clause": "AAA Commercial Rules, NY venue",
+        "arbitration_body": "AAA",
+        "payment_terms_days": 30,
+        "health_score": 88
+      },
+      "governing_law": "NY",
+      "customer_timezone": "America/Los_Angeles",
+      "case_status": "active",
+      "current_cadence_day": 7,
+      "pending_approvals": [],
+      "pending_outreach_queue": [
+        {
+          "request_id": "req-day7-voice-001",
+          "channel": "voice",
+          "scheduled_execution_customer_local": "2026-06-17T10:00:00-07:00",
+          "scheduled_execution_kst": "2026-06-18T02:00:00+09:00",
+          "approval_pushed_kst": "2026-06-17T22:00:00+09:00",
+          "lead_time_hours": 4
+        }
+      ],
+      "critical_alert_fired": true,
+      "critical_alert_reason": "pattern_tag=escalation_history on Day 0",
+      "sub_cycle_count": 0,
+      "_demo_role": "main_demo_case",
+      "_expected_demo_flow": "Day 0 Critical Alert → Diplomat opens firm → Day 7 voice (HITL) → Day 14 → ... → Day 60 demand letter → Day 65 Dynamic Discovery AAA Specialist → settlement",
+      "created_at": "2026-06-10T00:00:00+09:00",
+      "updated_at": "2026-06-17T17:00:00+09:00"
+    },
+
+    {
+      "case_id": "case-1290",
+      "invoice_id": "inv-1290",
+      "customer_id": "cust-polymatrix",
+      "mode": "in_spot",
+      "pattern_tag": "occasional_drift",
+      "contract_clauses": {
+        "governing_law": "New York",
+        "forum_selection": null,
+        "late_fee_clause": null,
+        "late_fee_rate_monthly": null,
+        "arbitration_clause": null,
+        "arbitration_body": null,
+        "payment_terms_days": 30,
+        "health_score": 52
+      },
+      "governing_law": "NY",
+      "customer_timezone": "America/New_York",
+      "case_status": "active",
+      "current_cadence_day": 0,
+      "pending_approvals": [],
+      "pending_outreach_queue": [],
+      "critical_alert_fired": false,
+      "sub_cycle_count": 0,
+      "_demo_role": "middle_control_group",
+      "_expected_demo_flow": "Day 0 → standard polite cadence → potentially partial payment Sub-Cycle demo (D-028) if evaluator asks",
+      "created_at": "2026-06-10T00:00:00+09:00",
+      "updated_at": "2026-06-10T00:00:00+09:00"
+    },
+
+    {
+      "case_id": "case-1330",
+      "invoice_id": "inv-1330",
+      "customer_id": "cust-xyz-inc",
+      "mode": "in_spot",
+      "pattern_tag": "clean_history",
+      "contract_clauses": {
+        "governing_law": "Delaware",
+        "forum_selection": "Court of Chancery, DE",
+        "late_fee_clause": "1% per month after Day 30",
+        "late_fee_rate_monthly": 1.0,
+        "arbitration_clause": null,
+        "arbitration_body": null,
+        "payment_terms_days": 30,
+        "health_score": 90
+      },
+      "governing_law": "DE",
+      "customer_timezone": "America/New_York",
+      "case_status": "active",
+      "current_cadence_day": -7,
+      "pending_approvals": [],
+      "pending_outreach_queue": [
+        {
+          "request_id": "req-day-7-email-001",
+          "channel": "email",
+          "scheduled_execution_customer_local": "2026-06-12T10:00:00-04:00",
+          "scheduled_execution_kst": "2026-06-12T23:00:00+09:00",
+          "approval_pushed_kst": "2026-06-12T22:00:00+09:00",
+          "lead_time_hours": 1
+        }
+      ],
+      "critical_alert_fired": false,
+      "sub_cycle_count": 0,
+      "_demo_role": "good_control_group",
+      "_expected_demo_flow": "Day -7 maximally-soft heads-up → expected to be paid on or before due date (clean_history pattern)",
+      "created_at": "2026-06-10T00:00:00+09:00",
+      "updated_at": "2026-06-10T00:00:00+09:00"
+    },
+
+    {
+      "case_id": "case-1340",
+      "invoice_id": "inv-1340",
+      "customer_id": "cust-newleaf",
+      "mode": "in_spot",
+      "pattern_tag": "new_customer",
+      "contract_clauses": {
+        "governing_law": null,
+        "forum_selection": null,
+        "late_fee_clause": null,
+        "late_fee_rate_monthly": null,
+        "arbitration_clause": null,
+        "arbitration_body": null,
+        "payment_terms_days": 30,
+        "health_score": 35
+      },
+      "governing_law": "amicable_fallback",
+      "_governing_law_note": "Pre-flight triggered Concierge 3-fallback because contract had no governing_law clause; operator chose Amicable for new-customer trust-building",
+      "customer_timezone": "America/Chicago",
+      "case_status": "active",
+      "current_cadence_day": 0,
+      "pending_approvals": [
+        {
+          "request_id": "req-pre-flight-fallback-001",
+          "type": "pre_flight_3_fallback",
+          "status": "responded",
+          "operator_choice": "amicable",
+          "responded_at": "2026-06-10T01:30:00+09:00"
+        }
+      ],
+      "pending_outreach_queue": [],
+      "critical_alert_fired": false,
+      "sub_cycle_count": 0,
+      "_demo_role": "new_customer_control_group",
+      "_expected_demo_flow": "Pre-flight 3-fallback Concierge card (operator picked Amicable) → standard polite cadence → Tier 1b external scrutiny higher than internal (new_customer pattern)",
+      "created_at": "2026-06-10T00:00:00+09:00",
+      "updated_at": "2026-06-10T01:30:00+09:00"
+    },
+
+    {
+      "case_id": "case-LITE-DEMO",
+      "invoice_id": "inv-LITE-001",
+      "customer_id": "cust-newleaf",
+      "mode": "lite",
+      "pattern_tag": "new_customer",
+      "_synthetic_for_demo": true,
+      "_demo_role": "lite_mode_side_bar_demo",
+      "_expected_demo_flow": "Side-bar only. Demonstrates Lite Mode for evaluator on request — invoice $1,800 (synthetic), operator picked [Run Lite], voice triggers all refused, Day 30 auto-close.",
+      "contract_clauses": {
+        "governing_law": "Texas",
+        "payment_terms_days": 30,
+        "health_score": 60
+      },
+      "governing_law": "TX",
+      "customer_timezone": "America/Chicago",
+      "case_status": "active",
+      "current_cadence_day": 0,
+      "pending_approvals": [],
+      "pending_outreach_queue": [],
+      "critical_alert_fired": false,
+      "sub_cycle_count": 0,
+      "_synthetic_invoice": {
+        "invoice_id": "inv-LITE-001",
+        "amount_usd": 1800,
+        "deposit_pct": 0,
+        "outstanding_balance_usd": 1800,
+        "issued_date": "2026-06-01",
+        "due_date": "2026-07-01"
+      },
+      "created_at": "2026-06-10T00:00:00+09:00",
+      "updated_at": "2026-06-10T00:00:00+09:00"
+    },
+
+    {
+      "case_id": "case-ATTORNEY-DEMO",
+      "invoice_id": "inv-ATTORNEY-001",
+      "customer_id": "cust-megacorp",
+      "_customer_legal_name": "MegaCorp Holdings",
+      "_customer_state": "NY",
+      "mode": "attorney_recommended",
+      "pattern_tag": "escalation_history",
+      "_synthetic_for_demo": true,
+      "_demo_role": "attorney_path_side_bar_demo",
+      "_expected_demo_flow": "Side-bar only. Demonstrates Attorney-Recommended path for evaluator on request — MegaCorp Holdings, gross $84,000 / 30% deposit / outstanding $58,800 (D-038); outstanding > $40K → route=attorney_recommended. Operator picked [Run Full Flow + Attorney Tag], Day 60 demand letter adds attorney recommendation paragraph + Investigator Tier 2 risk_score surfaced. Alternative path: operator picks [Skip + Get Referrals] → Concierge modal renders 3 mock firms from config/attorney_referrals.yaml.",
+      "contract_clauses": {
+        "governing_law": "New York",
+        "payment_terms_days": 30,
+        "health_score": 75
+      },
+      "governing_law": "NY",
+      "customer_timezone": "America/Los_Angeles",
+      "case_status": "active",
+      "current_cadence_day": 0,
+      "pending_approvals": [],
+      "pending_outreach_queue": [],
+      "critical_alert_fired": true,
+      "critical_alert_reason": "pattern_tag=escalation_history + outstanding > $40K (D-038)",
+      "sub_cycle_count": 0,
+      "_synthetic_invoice": {
+        "invoice_id": "inv-ATTORNEY-001",
+        "customer_legal_name": "MegaCorp Holdings",
+        "amount_usd": 84000,
+        "deposit_pct": 0.30,
+        "outstanding_balance_usd": 58800,
+        "issued_date": "2026-04-25",
+        "due_date": "2026-05-25"
+      },
+      "created_at": "2026-06-10T00:00:00+09:00",
+      "updated_at": "2026-06-10T00:00:00+09:00"
+    }
+  ]
+}

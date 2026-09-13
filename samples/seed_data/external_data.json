@@ -1,0 +1,234 @@
+{
+  "_meta": {
+    "schema_version": "1.0",
+    "description": "External-data fixtures for Investigator Tier 1b (SoS + OpenCorporates) and Tier 2 (LinkedIn via Proxycurl + CourtListener). Mirrors the structure of real API responses 1:1 so swapping `DEMO_MODE=false` triggers no code changes — only the data source. Real API integration target documented in `_real_company_demo_target`.",
+    "generated_at": "2026-06-10",
+    "schema_note": "Fixture schemas mirror real API responses for zero-friction swap",
+    "linked_decisions": ["D-025", "D-026"],
+    "as_of_date": "2026-06-10",
+
+    "tier_1b_apis": {
+      "us_secretary_of_state": "State-by-state portals (CA, NY, DE, TX scrapers wrapped in `src/public_data/sos.py`). Real call when DEMO_MODE=false.",
+      "opencorporates": "https://api.opencorporates.com/v0.4 — free tier 50 calls/day. Real call when DEMO_MODE=false."
+    },
+    "tier_2_apis": {
+      "linkedin": "Proxycurl (https://nubela.co/proxycurl) — free tier 100 credits/month, 1 credit per person/company lookup. Real call when DEMO_MODE=false. API key in PROXYCURL_API_KEY env var (register before 2026-06-15).",
+      "courtlistener": "https://www.courtlistener.com/api/rest/v4 — free, no key required. Real call when DEMO_MODE=false."
+    },
+
+    "_real_company_demo_target": {
+      "company_name": "Mercury Technologies",
+      "legal_name": "Mercury Technologies Inc.",
+      "rationale": "Decided 2026-06-10: B2B fintech, evaluator-recognizable, SoS-verifiable in CA/DE, public LinkedIn officer data. Used in the 10-second `real-company verification side bar` mid-demo to prove Tier 1b/2 integrations are not dead code.",
+      "demo_query_examples": [
+        "Look up Mercury Technologies in CA SoS",
+        "Pull Mercury Technologies CFO from LinkedIn via Proxycurl",
+        "Check CourtListener for any litigation involving Mercury Technologies in last 12 months"
+      ]
+    }
+  },
+
+  "external_scans": {
+    "cust-abc-corp": {
+      "sos_status": "ACTIVE",
+      "sos_state": "CA",
+      "sos_entity_number": "C4123456",
+      "sos_formation_date": "2018-04-22",
+      "sos_registered_agent": "Northwest Registered Agent LLC",
+      "sos_url": "https://bizfileonline.sos.ca.gov/search/business",
+      "opencorporates_url": "https://opencorporates.com/companies/us_ca/C4123456-MOCK",
+      "opencorporates_officers": [
+        { "name": "Robert Chen", "position": "CEO", "appointed_at": "2018-04-22" },
+        { "name": "Maria Sanchez", "position": "Interim Controller", "appointed_at": "2026-03-01" }
+      ],
+      "status_changed_since_last_scan": false,
+      "last_scan_at": "2026-06-09T22:00:00Z",
+      "_sources": [
+        "https://bizfileonline.sos.ca.gov (mocked response)",
+        "https://opencorporates.com (mocked response)"
+      ]
+    },
+    "cust-polymatrix": {
+      "sos_status": "ACTIVE",
+      "sos_state": "NY",
+      "sos_entity_number": "5234567",
+      "sos_formation_date": "2021-08-10",
+      "sos_registered_agent": "Corporate Creations Network Inc.",
+      "sos_url": "https://apps.dos.ny.gov/publicInquiry/",
+      "opencorporates_url": "https://opencorporates.com/companies/us_ny/5234567-MOCK",
+      "opencorporates_officers": [
+        { "name": "David Kim", "position": "CEO", "appointed_at": "2021-08-10" },
+        { "name": "Sarah Patel", "position": "CFO", "appointed_at": "2023-01-15" }
+      ],
+      "status_changed_since_last_scan": false,
+      "last_scan_at": "2026-06-09T22:00:00Z"
+    },
+    "cust-xyz-inc": {
+      "sos_status": "ACTIVE",
+      "sos_state": "DE",
+      "sos_entity_number": "7456789",
+      "sos_formation_date": "2015-02-18",
+      "sos_registered_agent": "The Corporation Trust Company",
+      "sos_url": "https://icis.corp.delaware.gov/",
+      "opencorporates_url": "https://opencorporates.com/companies/us_de/7456789-MOCK",
+      "opencorporates_officers": [
+        { "name": "Michael Liu", "position": "CEO", "appointed_at": "2015-02-18" },
+        { "name": "Priya Sharma", "position": "CFO", "appointed_at": "2019-06-10" }
+      ],
+      "status_changed_since_last_scan": false,
+      "last_scan_at": "2026-06-09T22:00:00Z"
+    },
+    "cust-newleaf": {
+      "sos_status": "ACTIVE",
+      "sos_state": "TX",
+      "sos_entity_number": "0807812345",
+      "sos_formation_date": "2026-01-08",
+      "sos_registered_agent": "InCorp Services, Inc.",
+      "sos_url": "https://mycpa.cpa.state.tx.us/coa/",
+      "opencorporates_url": "https://opencorporates.com/companies/us_tx/0807812345-MOCK",
+      "opencorporates_officers": [
+        { "name": "Aisha Williams", "position": "CEO", "appointed_at": "2026-01-08" }
+      ],
+      "status_changed_since_last_scan": false,
+      "last_scan_at": "2026-06-09T22:00:00Z",
+      "_note": "New customer, recently incorporated — limited external history. Diplomat should treat with standard cadence + slightly elevated baseline scrutiny."
+    },
+    "cust-megacorp": {
+      "sos_status": "ACTIVE",
+      "sos_state": "NY",
+      "sos_entity_number": "3500001234",
+      "sos_formation_date": "2002-11-04",
+      "sos_registered_agent": "C T Corporation System",
+      "sos_url": "https://apps.dos.ny.gov/publicInquiry/",
+      "opencorporates_url": "https://opencorporates.com/companies/us_ny/3500001234-MOCK",
+      "opencorporates_officers": [
+        { "name": "Robert J. Sterling", "position": "CEO", "appointed_at": "2018-03-12" },
+        { "name": "Linda Park", "position": "CFO", "appointed_at": "2021-09-01" }
+      ],
+      "status_changed_since_last_scan": false,
+      "last_scan_at": "2026-06-09T22:00:00Z",
+      "_note": "Synthetic side-bar Attorney-path demo fixture. Outstanding $58,800 (gross $84,000 less 30% deposit) > $40K sweet-spot ceiling — Pre-flight routes attorney_recommended."
+    }
+  },
+
+  "deep_dives": {
+    "cust-abc-corp": {
+      "linkedin_signals": [
+        {
+          "subject_name": "Jane Doe",
+          "subject_role": "Former CFO at ABC Corp",
+          "subject_linkedin_url": "https://www.linkedin.com/in/jane-doe-cfo-MOCK",
+          "signal_type": "officer_transition_verified",
+          "signal_text": "Jane Doe updated LinkedIn headline to 'CFO at NewCorp' on 2026-05-15. Previous role 'CFO at ABC Corp' moved to 'Past Experience'. Customer's CFO-transition excuse on inv-0987 is plausible.",
+          "scraped_at": "2026-06-09T22:05:00Z"
+        }
+      ],
+      "officer_changes": [
+        {
+          "officer_name": "Jane Doe",
+          "title": "CFO",
+          "change_type": "departed",
+          "effective_date": "2026-05-15",
+          "source": "LinkedIn + ABC Corp company page",
+          "successor_name": "Maria Sanchez",
+          "successor_title": "Interim Controller",
+          "successor_appointed_date": "2026-03-01"
+        }
+      ],
+      "litigation": [
+        {
+          "case_id": "MOCK-2025-CV-09876",
+          "court": "California Superior Court, Santa Clara County",
+          "filed_at": "2025-09-12",
+          "plaintiff": "Pacific Components LLC",
+          "defendant": "ABC Trading Co.",
+          "case_type": "breach of contract / unpaid invoices",
+          "status": "settled (2026-01-22)",
+          "amount_disputed_usd": 14000,
+          "courtlistener_url": "https://www.courtlistener.com/MOCK-2025-CV-09876",
+          "_signal": "Confirms ABC Corp has a payment-dispute history with another vendor — strengthens chronic_late + escalation_history pattern."
+        }
+      ],
+      "risk_score": 68,
+      "risk_score_components": {
+        "internal_pattern_weight": 35,
+        "litigation_weight": 15,
+        "officer_churn_weight": 10,
+        "sos_status_weight": 0,
+        "linkedin_distress_weight": 8
+      },
+      "summary": "ABC Corp shows a moderate-to-high risk profile (68/100). Three prior late payments to us (escalation_history pattern), one confirmed prior litigation with another vendor for unpaid invoices, and a real CFO transition in May 2026. The current CFO-transition excuse on the new invoice is plausibly true but historically the company drags payments regardless. Recommend pre-warmed Escalator from Day 0.",
+      "sources": [
+        "https://www.linkedin.com/in/jane-doe-cfo-MOCK (Proxycurl)",
+        "https://www.courtlistener.com/MOCK-2025-CV-09876 (CourtListener)"
+      ]
+    },
+    "cust-polymatrix": {
+      "linkedin_signals": [],
+      "officer_changes": [],
+      "litigation": [],
+      "risk_score": 28,
+      "risk_score_components": {
+        "internal_pattern_weight": 18,
+        "litigation_weight": 0,
+        "officer_churn_weight": 0,
+        "sos_status_weight": 0,
+        "linkedin_distress_weight": 10
+      },
+      "summary": "PolyMatrix Industries LLC shows a low risk profile (28/100). Two prior modest late payments (~9d avg), no escalation, no litigation, leadership stable. Bank-switch and payment-run-cadence excuses are consistent with operational drift, not financial distress. Standard cadence.",
+      "sources": [
+        "https://www.linkedin.com/company/polymatrix-MOCK (Proxycurl)",
+        "https://www.courtlistener.com/?q=PolyMatrix (CourtListener: no hits)"
+      ]
+    },
+    "cust-xyz-inc": {
+      "linkedin_signals": [
+        {
+          "subject_name": "Priya Sharma",
+          "subject_role": "CFO at XYZ Inc",
+          "signal_type": "stable_leadership",
+          "signal_text": "CFO Priya Sharma in role since 2019-06-10, no recent change, recent posts about XYZ expansion to Singapore — healthy growth signal.",
+          "scraped_at": "2026-06-09T22:05:00Z"
+        }
+      ],
+      "officer_changes": [],
+      "litigation": [],
+      "risk_score": 8,
+      "risk_score_components": {
+        "internal_pattern_weight": 0,
+        "litigation_weight": 0,
+        "officer_churn_weight": 0,
+        "sos_status_weight": 0,
+        "linkedin_distress_weight": 8
+      },
+      "summary": "XYZ Inc shows a minimal risk profile (8/100). Three prior payments all on or before due date, stable leadership, public expansion signals. Treat as best-in-class customer; minimal automation needed.",
+      "sources": []
+    },
+    "cust-newleaf": {
+      "linkedin_signals": [
+        {
+          "subject_name": "Aisha Williams",
+          "subject_role": "CEO at NewLeaf Startup",
+          "signal_type": "funding_signal",
+          "signal_text": "Founder Aisha Williams posted on LinkedIn 2026-06-02 about closing Seed round ($2.4M) led by a notable fund. Funding-round excuse on inv-1280 is verified true.",
+          "scraped_at": "2026-06-09T22:05:00Z"
+        }
+      ],
+      "officer_changes": [],
+      "litigation": [],
+      "risk_score": 32,
+      "risk_score_components": {
+        "internal_pattern_weight": 12,
+        "litigation_weight": 0,
+        "officer_churn_weight": 0,
+        "sos_status_weight": 0,
+        "linkedin_distress_weight": 0,
+        "new_customer_uncertainty_weight": 20
+      },
+      "summary": "NewLeaf Startup shows a moderate-low risk profile (32/100) driven mostly by new-customer uncertainty. Single prior late payment (5d) with verified funding-round excuse, healthy LinkedIn signal. Standard cadence with slight elevation; reassess in 3 months once internal history matures.",
+      "sources": [
+        "https://www.linkedin.com/in/aisha-williams-MOCK (Proxycurl)"
+      ]
+    }
+  }
+}

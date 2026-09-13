@@ -1,0 +1,290 @@
+{
+  "_meta": {
+    "schema_version": "1.0",
+    "description": "Pre-populated CustomerHistory fixture for Recoverly demo. Mirrors the production database schema 1:1 — Investigator's Tier 1a `query_internal_customer_history` tool reads this file when DEMO_MODE=true, and reads the live DB when DEMO_MODE=false. Four customers cover the four demo personas (escalation_history / occasional_drift / clean_history / new_customer). See samples/seed_data/README.md for the design rationale.",
+    "generated_at": "2026-06-10",
+    "designed_by": "operator team (3-tier persona spec + fixture authoring)",
+    "linked_decisions": ["D-025", "D-026"],
+    "as_of_date": "2026-06-10"
+  },
+
+  "customers": [
+    {
+      "customer_id": "cust-abc-corp",
+      "customer_name": "ABC Trading Co.",
+      "customer_legal_name": "ABC Trading Co.",
+      "customer_state": "CA",
+      "customer_country": "US",
+      "contact_email": "ap@abc-corp.example",
+      "onboarded_date": "2025-08-12",
+      "industry": "consumer electronics importer",
+      "annual_revenue_band": "$5M-$15M",
+      "_persona_tag": "escalation_history",
+      "_demo_role": "main_demo_case",
+      "invoices": [
+        {
+          "invoice_id": "inv-0950",
+          "amount_usd": 6200,
+          "issued_date": "2025-11-15",
+          "due_date": "2025-12-15",
+          "paid_date": "2026-01-18",
+          "days_late": 34,
+          "settlement_channel": "wire",
+          "customer_replies": [
+            { "received_at": "2025-12-22", "snippet": "Sorry for the delay — tax season is hitting us hard with the year-end audit. Can we push payment to end of month?" },
+            { "received_at": "2026-01-10", "snippet": "Audit wrapping up next week, we'll wire on the 17th." }
+          ],
+          "excuse_tags": ["tax_season", "audit_in_progress"],
+          "walked_to_escalator": false
+        },
+        {
+          "invoice_id": "inv-0987",
+          "amount_usd": 11500,
+          "issued_date": "2026-01-10",
+          "due_date": "2026-02-10",
+          "paid_date": "2026-04-20",
+          "days_late": 69,
+          "settlement_channel": "wire",
+          "customer_replies": [
+            { "received_at": "2026-02-18", "snippet": "Our CFO Jane Doe transitioned out last month, AP is currently being reorganized." },
+            { "received_at": "2026-03-15", "snippet": "Interim controller is still onboarding, need another 30 days please." },
+            { "received_at": "2026-04-08", "snippet": "Board meeting Tuesday approving outstanding wires, will pay 4/20." }
+          ],
+          "excuse_tags": ["cfo_transition", "controller_onboarding", "board_approval"],
+          "walked_to_escalator": true,
+          "demand_letter_drafted_at": "2026-04-05"
+        },
+        {
+          "invoice_id": "inv-1102",
+          "amount_usd": 4800,
+          "issued_date": "2026-03-30",
+          "due_date": "2026-04-30",
+          "paid_date": "2026-05-21",
+          "days_late": 21,
+          "settlement_channel": "wire",
+          "customer_replies": [
+            { "received_at": "2026-05-08", "snippet": "Tax season audit ongoing, will settle by month-end." }
+          ],
+          "excuse_tags": ["tax_season", "audit_in_progress"],
+          "walked_to_escalator": false
+        },
+        {
+          "invoice_id": "inv-1234",
+          "amount_usd": 8500,
+          "issued_date": "2026-03-25",
+          "due_date": "2026-04-25",
+          "paid_date": null,
+          "days_late": null,
+          "settlement_channel": null,
+          "customer_replies": [],
+          "excuse_tags": [],
+          "_demo_role": "current_unpaid_invoice"
+        }
+      ],
+      "_expected_pattern_tag": "escalation_history",
+      "_expected_summary": "Chronic late: 3 prior late payments in 6mo, avg 41d, 'tax_season' excuse 2x, walked to Day 69 once. Pre-warm Escalator on Day 0."
+    },
+
+    {
+      "customer_id": "cust-polymatrix",
+      "customer_name": "PolyMatrix Industries LLC",
+      "customer_legal_name": "PolyMatrix Solutions, Inc.",
+      "customer_state": "NY",
+      "customer_country": "US",
+      "contact_email": "billing@polymatrix.example",
+      "onboarded_date": "2025-09-20",
+      "industry": "B2B SaaS analytics",
+      "annual_revenue_band": "$2M-$5M",
+      "_persona_tag": "occasional_drift",
+      "_demo_role": "middle_control_group",
+      "invoices": [
+        {
+          "invoice_id": "inv-1015",
+          "amount_usd": 3200,
+          "issued_date": "2026-01-05",
+          "due_date": "2026-02-04",
+          "paid_date": "2026-02-12",
+          "days_late": 8,
+          "settlement_channel": "ach",
+          "customer_replies": [
+            { "received_at": "2026-02-07", "snippet": "Apologies — switching banks this month, will batch this with next week's payables." }
+          ],
+          "excuse_tags": ["bank_switch"],
+          "walked_to_escalator": false
+        },
+        {
+          "invoice_id": "inv-1180",
+          "amount_usd": 5600,
+          "issued_date": "2026-03-12",
+          "due_date": "2026-04-11",
+          "paid_date": "2026-04-21",
+          "days_late": 10,
+          "settlement_channel": "ach",
+          "customer_replies": [
+            { "received_at": "2026-04-14", "snippet": "Will process this Friday's payment run, sorry for the wait." }
+          ],
+          "excuse_tags": ["payment_run_cadence"],
+          "walked_to_escalator": false
+        },
+        {
+          "invoice_id": "inv-1290",
+          "amount_usd": 4100,
+          "issued_date": "2026-05-01",
+          "due_date": "2026-05-31",
+          "paid_date": null,
+          "days_late": null,
+          "settlement_channel": null,
+          "customer_replies": [],
+          "excuse_tags": [],
+          "_demo_role": "optional_secondary_case"
+        }
+      ],
+      "_expected_pattern_tag": "occasional_drift",
+      "_expected_summary": "Occasional drift: 2 prior late payments avg 9d, never escalated. Standard cadence."
+    },
+
+    {
+      "customer_id": "cust-xyz-inc",
+      "customer_name": "XYZ Inc",
+      "customer_legal_name": "XYZ Technologies, Inc.",
+      "customer_state": "DE",
+      "customer_country": "US",
+      "contact_email": "accounts@xyz-inc.example",
+      "onboarded_date": "2025-10-01",
+      "industry": "enterprise hardware distributor",
+      "annual_revenue_band": "$15M-$50M",
+      "_persona_tag": "clean_history",
+      "_demo_role": "good_control_group",
+      "invoices": [
+        {
+          "invoice_id": "inv-1050",
+          "amount_usd": 7500,
+          "issued_date": "2026-01-30",
+          "due_date": "2026-03-01",
+          "paid_date": "2026-02-26",
+          "days_late": -3,
+          "settlement_channel": "wire",
+          "customer_replies": [],
+          "excuse_tags": [],
+          "walked_to_escalator": false
+        },
+        {
+          "invoice_id": "inv-1160",
+          "amount_usd": 9200,
+          "issued_date": "2026-02-28",
+          "due_date": "2026-03-30",
+          "paid_date": "2026-03-29",
+          "days_late": -1,
+          "settlement_channel": "wire",
+          "customer_replies": [],
+          "excuse_tags": [],
+          "walked_to_escalator": false
+        },
+        {
+          "invoice_id": "inv-1245",
+          "amount_usd": 6800,
+          "issued_date": "2026-04-02",
+          "due_date": "2026-05-02",
+          "paid_date": "2026-05-01",
+          "days_late": -1,
+          "settlement_channel": "wire",
+          "customer_replies": [],
+          "excuse_tags": [],
+          "walked_to_escalator": false
+        },
+        {
+          "invoice_id": "inv-1330",
+          "amount_usd": 5400,
+          "issued_date": "2026-05-15",
+          "due_date": "2026-06-14",
+          "paid_date": null,
+          "days_late": null,
+          "settlement_channel": null,
+          "customer_replies": [],
+          "excuse_tags": [],
+          "_demo_role": "fresh_invoice_demonstrating_soft_tone"
+        }
+      ],
+      "_expected_pattern_tag": "clean_history",
+      "_expected_summary": "Clean history: 3 prior payments all on or before due date, never late. Open with maximally soft tone, assume any current delay is a genuine accident."
+    },
+
+    {
+      "customer_id": "cust-newleaf",
+      "customer_name": "NewLeaf Startup",
+      "customer_legal_name": "NewLeaf Labs Inc.",
+      "customer_state": "TX",
+      "customer_country": "US",
+      "contact_email": "finance@newleaf.example",
+      "onboarded_date": "2026-04-15",
+      "industry": "AI-native logistics SaaS",
+      "annual_revenue_band": "<$1M (seed-stage)",
+      "_persona_tag": "new_customer",
+      "_demo_role": "new_customer_control_group",
+      "invoices": [
+        {
+          "invoice_id": "inv-1280",
+          "amount_usd": 2900,
+          "issued_date": "2026-04-25",
+          "due_date": "2026-05-25",
+          "paid_date": "2026-05-30",
+          "days_late": 5,
+          "settlement_channel": "ach",
+          "customer_replies": [
+            { "received_at": "2026-05-26", "snippet": "Just finalizing our Series A — closing this week, will wire immediately after." }
+          ],
+          "excuse_tags": ["funding_round"],
+          "walked_to_escalator": false
+        },
+        {
+          "invoice_id": "inv-1340",
+          "amount_usd": 3400,
+          "issued_date": "2026-05-20",
+          "due_date": "2026-06-19",
+          "paid_date": null,
+          "days_late": null,
+          "settlement_channel": null,
+          "customer_replies": [],
+          "excuse_tags": []
+        }
+      ],
+      "_expected_pattern_tag": "new_customer",
+      "_expected_summary": "New customer (onboarded 2026-04-15, < 3mo history): only 1 prior data point (5d late, funding-round excuse). Insufficient internal signal — defer to external Tier 1b (SoS + OpenCorporates) for trust baseline. Open polite, standard cadence."
+    },
+
+    {
+      "customer_id": "cust-megacorp",
+      "customer_name": "MegaCorp Holdings",
+      "customer_legal_name": "MegaCorp Holdings",
+      "customer_state": "NY",
+      "customer_country": "US",
+      "contact_email": "ap@megacorp.example",
+      "onboarded_date": "2023-02-10",
+      "industry": "Diversified holdings (consumer + industrial)",
+      "annual_revenue_band": "$500M-$1B",
+      "_persona_tag": "escalation_history",
+      "_demo_role": "attorney_path_side_bar_demo",
+      "_synthetic_for_demo": true,
+      "_canonical_source": "docs/canonical-fixture-table.md side-bar fixture (R9-B-N3 + R10-B-N2)",
+      "invoices": [
+        {
+          "invoice_id": "inv-ATTORNEY-001",
+          "amount_usd": 84000,
+          "deposit_pct": 0.30,
+          "outstanding_balance_usd": 58800,
+          "issued_date": "2026-04-25",
+          "due_date": "2026-05-25",
+          "paid_date": null,
+          "days_late": 75,
+          "settlement_channel": null,
+          "customer_replies": [
+            { "received_at": "2026-06-10", "snippet": "We are reviewing this with our legal department. Please direct further inquiries to counsel." }
+          ],
+          "excuse_tags": ["legal_review", "stonewalling"],
+          "walked_to_escalator": true
+        }
+      ],
+      "_expected_summary": "Side-bar Attorney path demo: gross $84,000 / 30% deposit / outstanding $58,800 (D-038). Outstanding > $40K → Pre-flight routes attorney_recommended. Concierge surfaces 2-button [Run Full Flow + Attorney Tag] / [Skip + Get Referrals]. Demonstrates Recoverly's honest refusal of cases where contingency attorney is more cost-effective."
+    }
+  ]
+}
