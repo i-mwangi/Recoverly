@@ -33,6 +33,7 @@ Recoverly connects to more than three external applications in the working flow:
 | Resend | Approved demand/reminder email delivery and settlement notifications |
 | Gmail | Inbox used in the demo to receive and review collection notices and payment receipts; email delivery uses Resend, with no direct Gmail API integration |
 | Twilio | Operator-approved buyer calls and call-status updates |
+| Fish Audio | Generates spoken audio from collection scripts for the Twilio call flow |
 | ngrok | Secure public HTTPS tunnel for local Slack and Twilio webhook demonstrations |
 
 ### 3. Setup instructions
