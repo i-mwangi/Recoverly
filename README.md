@@ -2,6 +2,8 @@
 
 Recoverly is an approval-first recovery workspace for Kenyan coffee and tea exporters managing overdue B2B invoices. It turns an invoice and contract into a structured case, prepares an appropriate collection action, keeps a human operator in control, and reconciles payments through the configured payment methods back to the case.
 
+**[▶ Watch the Recoverly demo on YouTube](https://www.youtube.com/watch?v=4p-7WtbMgEM)**
+
 The primary demonstration flow is:
 
 1. Upload a contract and invoice to the Recoverly Slack channel.
