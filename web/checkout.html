@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Settle {{invoice_no}} — Recoverly</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+  :root { color-scheme: light dark; --bg: #fafaf7; --fg: #1a1a1a; --muted: #666; --accent: #2b6cb0; --card: #ffffff; --border: #e5e5e0; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #17171a; --fg: #f0f0ee; --muted: #a0a0a0; --card: #22232a; --border: #333; } }
+  body { margin: 0; padding: 3rem 1.5rem; background: var(--bg); color: var(--fg); font: 16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; }
+  main { max-width: 34rem; margin: 0 auto; }
+  header { margin-bottom: 2rem; }
+  header h1 { font-size: 1.5rem; margin: 0 0 .25rem; }
+  header p { margin: 0; color: var(--muted); }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 1rem; }
+  dl { display: grid; grid-template-columns: auto 1fr; gap: .55rem 1.5rem; margin: 0; }
+  dt { color: var(--muted); }
+  dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; }
+  .total { font-size: 1.35rem; font-weight: 600; padding-top: .75rem; border-top: 1px solid var(--border); margin-top: .25rem; }
+  .methods { display: grid; gap: .75rem; }
+  .method { display: flex; align-items: center; justify-content: space-between; padding: .85rem 1rem; border: 1px solid var(--border); border-radius: 10px; cursor: pointer; }
+  .method:hover { border-color: var(--accent); }
+  .method h3 { margin: 0; font-size: 1rem; }
+  .method p { margin: .15rem 0 0; font-size: .85rem; color: var(--muted); }
+  .method .eta { font-size: .8rem; color: var(--muted); }
+  .amount-input { display: grid; gap: .3rem; color: var(--muted); font-size: .9rem; }
+  .amount-input input { padding: .65rem; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--fg); font: inherit; }
+  .status { min-height: 1.5rem; color: var(--muted); margin: .25rem 0 0; }
+  .status.error { color: #c53030; }
+  .status.success { color: #26834a; }
+  footer { text-align: center; color: var(--muted); font-size: .85rem; margin-top: 2rem; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Settle invoice {{invoice_no}}</h1>
+    <p>{{buyer_label}}</p>
+  </header>
+
+  <section class="card">
+    <dl>
+      <dt>Case reference</dt><dd>{{case_id}}</dd>
+      <dt>Invoice number</dt><dd>{{invoice_no}}</dd>
+      <dt class="total">Amount due</dt><dd class="total">${{amount}}</dd>
+    </dl>
+  </section>
+
+  <form class="card methods" action="/pay/{{case_id}}/start" method="post">
+    <h2>Choose a payment method</h2>
+    <label class="amount-input" for="hashpack-amount">USDC amount to pay
+      <input id="hashpack-amount" type="number" min="0.000001" max="{{amount_raw}}" step="0.000001" value="{{amount_raw}}" inputmode="decimal">
+    </label>
+    <button class="method" type="button" id="hashpack-pay">Pay USDC with HashPack</button>
+    <p class="status" id="hashpack-status" aria-live="polite"></p>
+    <button class="method" type="submit" name="method" value="usdc">View Hedera USDC instructions</button>
+    <button class="method" type="submit" name="method" value="wire">View wire transfer instructions</button>
+    <p>Availability depends on your account's configured payment methods.</p>
+  </form>
+  <footer>Reference this invoice number on any transfer. Recoverly does not receive card details on this page.</footer>
+</main>
+<script type="module">
+  const payment = {
+    network: "{{network}}",
+    receiver: "{{receiving_account_id}}",
+    tokenId: "{{usdc_token_id}}",
+    memo: "{{payment_memo}}",
+    maxAmount: Number("{{amount_raw}}"),
+    projectId: "{{walletconnect_project_id}}",
+  };
+  const button = document.querySelector("#hashpack-pay");
+  const amountInput = document.querySelector("#hashpack-amount");
+  const status = document.querySelector("#hashpack-status");
+  const setStatus = (message, kind = "") => {
+    status.textContent = message;
+    status.className = `status ${kind}`;
+  };
+  const transactionUrl = (transactionId) =>
+    `https://hashscan.io/${payment.network}/transaction/${encodeURIComponent(transactionId)}`;
+
+  if (!payment.projectId || !payment.receiver || !payment.tokenId) {
+    button.disabled = true;
+    setStatus("HashPack checkout is not configured. Use the Hedera instructions below.", "error");
+  }
+
+  button.addEventListener("click", async () => {
+    if (!payment.projectId || !payment.receiver || !payment.tokenId) return;
+    button.disabled = true;
+    setStatus("Opening HashPack connection…");
+    try {
+      const amount = Number(amountInput.value);
+      if (!Number.isFinite(amount) || amount <= 0 || amount > payment.maxAmount) {
+        throw new Error(`Enter an amount between 0.000001 and ${payment.maxAmount} USDC.`);
+      }
+      const atomicAmount = Math.round(amount * 1_000_000);
+      const wallet = await import("https://esm.sh/@hashgraph/hedera-wallet-connect@2.1.3?bundle");
+      const sdk = await import("https://esm.sh/@hiero-ledger/sdk@2.79.0?bundle");
+      const ledger = payment.network === "mainnet" ? sdk.LedgerId.MAINNET : sdk.LedgerId.TESTNET;
+      const chain = payment.network === "mainnet"
+        ? wallet.HederaChainId.Mainnet
+        : wallet.HederaChainId.Testnet;
+      const connector = new wallet.DAppConnector(
+        {
+          name: "Recoverly",
+          description: "Approve a USDC settlement",
+          url: window.location.origin,
+          icons: [],
+        },
+        ledger,
+        payment.projectId,
+        Object.values(wallet.HederaJsonRpcMethod),
+        [wallet.HederaSessionEvent.ChainChanged, wallet.HederaSessionEvent.AccountsChanged],
+        [chain],
+        "error",
+      );
+      await connector.init({ logger: "error" });
+      await connector.openModal(undefined, true);
+      const signer = connector.signers[0];
+      if (!signer) throw new Error("No Hedera account was selected in HashPack.");
+      const sender = signer.getAccountId().toString();
+      const transaction = new sdk.TransferTransaction()
+        .addTokenTransfer(payment.tokenId, sender, -atomicAmount)
+        .addTokenTransfer(payment.tokenId, payment.receiver, atomicAmount)
+        .setTransactionMemo(payment.memo);
+      setStatus("Confirm the USDC transfer in HashPack…");
+      const response = await transaction.executeWithSigner(signer);
+      const transactionId = response.transactionId.toString();
+      setStatus("Payment submitted. Recoverly will confirm it shortly.", "success");
+      const link = document.createElement("a");
+      link.href = transactionUrl(transactionId);
+      link.target = "_blank";
+      link.rel = "noopener";
+      link.textContent = "View transaction in HashScan";
+      status.append(" ", link);
+    } catch (error) {
+      console.error("HashPack payment failed", error);
+      setStatus(error?.message || "Wallet connection or payment was cancelled.", "error");
+    } finally {
+      button.disabled = false;
+    }
+  });
+</script>
+</body>
+</html>
+
