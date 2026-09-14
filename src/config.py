@@ -37,6 +37,10 @@ def env_path(name: str, default: Path) -> Path:
     return Path(value) if value else default
 
 
+def recoverly_data_dir() -> Path:
+    return env_path("RECOVERLY_DATA_DIR", PROJECT_ROOT / "data")
+
+
 @dataclass(frozen=True, slots=True)
 class DataSources:
     customer_history_json: Path = field(
@@ -61,13 +65,13 @@ class DataSources:
         default_factory=lambda: PROJECT_ROOT / "config" / "attorney_referrals.yaml"
     )
     audit_trail_jsonl: Path = field(
-        default_factory=lambda: PROJECT_ROOT / "data" / "audit_trail.jsonl"
+        default_factory=lambda: recoverly_data_dir() / "audit_trail.jsonl"
     )
     case_state_dir: Path = field(
-        default_factory=lambda: PROJECT_ROOT / "data" / "cases"
+        default_factory=lambda: recoverly_data_dir() / "cases"
     )
     attachments_dir: Path = field(
-        default_factory=lambda: PROJECT_ROOT / "data" / "attachments"
+        default_factory=lambda: recoverly_data_dir() / "attachments"
     )
     chroma_persist_dir: Path = field(
         default_factory=lambda: env_path(
