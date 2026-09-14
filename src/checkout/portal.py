@@ -114,12 +114,24 @@ def build_context(
         invoice_no=str(invoice),
         amount_usd=amount,
         buyer_label=label,
-        network=os.getenv("HEDERA_NETWORK", "testnet").strip().lower() or "testnet",
-        receiving_account_id=os.getenv("HEDERA_RECEIVING_ACCOUNT_ID", "").strip(),
-        usdc_token_id=os.getenv("HEDERA_USDC_TOKEN_ID", "").strip(),
+        network=(
+            os.getenv("ONCHAIN_STABLECOIN_NETWORK", "").strip()
+            or os.getenv("HEDERA_NETWORK", "testnet").strip()
+        ).lower(),
+        receiving_account_id=(
+            os.getenv("ONCHAIN_STABLECOIN_RECEIVING_ACCOUNT", "").strip()
+            or os.getenv("HEDERA_RECEIVING_ACCOUNT_ID", "").strip()
+        ),
+        usdc_token_id=(
+            os.getenv("ONCHAIN_STABLECOIN_TOKEN_ID", "").strip()
+            or os.getenv("HEDERA_USDC_TOKEN_ID", "").strip()
+        ),
         payment_memo=f"recoverly:{case_id}",
         amount_atomic=amount_atomic,
-        walletconnect_project_id=os.getenv("HEDERA_WALLETCONNECT_PROJECT_ID", "").strip(),
+        walletconnect_project_id=(
+            os.getenv("ONCHAIN_STABLECOIN_WALLETCONNECT_PROJECT_ID", "").strip()
+            or os.getenv("HEDERA_WALLETCONNECT_PROJECT_ID", "").strip()
+        ),
     )
 
 

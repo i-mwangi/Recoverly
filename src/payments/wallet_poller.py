@@ -68,7 +68,11 @@ def save_state(state: PollerState, path=STATE_PATH) -> None:
 
 def poll_interval_seconds() -> int:
     try:
-        return max(5, int(os.getenv("WALLET_POLL_INTERVAL_SEC", str(DEFAULT_INTERVAL_SECONDS))))
+        value = (
+            os.getenv("ONCHAIN_STABLECOIN_POLL_INTERVAL_SEC", "").strip()
+            or os.getenv("WALLET_POLL_INTERVAL_SEC", str(DEFAULT_INTERVAL_SECONDS))
+        )
+        return max(5, int(value))
     except ValueError:
         return DEFAULT_INTERVAL_SECONDS
 

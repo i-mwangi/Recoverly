@@ -48,15 +48,25 @@ def validate_account_id(account_id: str) -> str:
 
 
 def network() -> str:
-    return os.getenv("HEDERA_NETWORK", DEFAULT_NETWORK).strip().lower()
+    return (
+        os.getenv("ONCHAIN_STABLECOIN_NETWORK", "").strip()
+        or os.getenv("HEDERA_NETWORK", DEFAULT_NETWORK).strip()
+    ).lower()
 
 
 def mirror_node_url() -> str:
-    return os.getenv("HEDERA_MIRROR_NODE") or MIRROR_NODES.get(network(), TESTNET_MIRROR_NODE)
+    return (
+        os.getenv("ONCHAIN_STABLECOIN_INDEXER_URL", "").strip()
+        or os.getenv("HEDERA_MIRROR_NODE", "").strip()
+        or MIRROR_NODES.get(network(), TESTNET_MIRROR_NODE)
+    )
 
 
 def usdc_token_id() -> str:
-    override = os.getenv("HEDERA_USDC_TOKEN_ID", "").strip()
+    override = (
+        os.getenv("ONCHAIN_STABLECOIN_TOKEN_ID", "").strip()
+        or os.getenv("HEDERA_USDC_TOKEN_ID", "").strip()
+    )
     return override or USDC_TOKEN_IDS.get(network(), USDC_TOKEN_IDS["testnet"])
 
 
@@ -69,7 +79,10 @@ def operator_private_key() -> str:
 
 
 def receiving_account_id() -> str:
-    return os.getenv("HEDERA_RECEIVING_ACCOUNT_ID", "").strip()
+    return (
+        os.getenv("ONCHAIN_STABLECOIN_RECEIVING_ACCOUNT", "").strip()
+        or os.getenv("HEDERA_RECEIVING_ACCOUNT_ID", "").strip()
+    )
 
 
 def transaction_explorer_url(transaction_id: str, network_name: str | None = None) -> str:

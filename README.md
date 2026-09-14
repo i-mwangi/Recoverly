@@ -205,7 +205,7 @@ Configure the variables for the methods you intend to offer:
 | Method | Environment variables |
 |---|---|
 | Card via Paystack | `PAYSTACK_SECRET_KEY`, `PAYSTACK_CALLBACK_URL`; configure `/webhooks/paystack` for settlement events |
-| On-chain USDC transfer | `HEDERA_NETWORK`, `HEDERA_RECEIVING_ACCOUNT_ID`, `HEDERA_USDC_TOKEN_ID`, optional `HEDERA_MIRROR_NODE`, `WALLET_POLL_INTERVAL_SEC` |
+| On-chain USDC transfer | `ONCHAIN_STABLECOIN_NETWORK`, `ONCHAIN_STABLECOIN_RECEIVING_ACCOUNT`, `ONCHAIN_STABLECOIN_TOKEN_ID`, optional `ONCHAIN_STABLECOIN_INDEXER_URL`, `ONCHAIN_STABLECOIN_POLL_INTERVAL_SEC` |
 | Wire / ACH instructions | `WIRE_BENEFICIARY_NAME`, `WIRE_BANK_NAME`, `WIRE_BANK_ADDRESS`, `WIRE_SWIFT_BIC`, `WIRE_ACCOUNT_NUMBER`, `WIRE_ROUTING_CODE` |
 | Shared payment links | `RECOVERLY_PAYLINK_BASE` pointing to the public application URL ending in `/pay` |
 
