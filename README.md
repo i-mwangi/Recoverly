@@ -1,6 +1,6 @@
 # Recoverly
 
-Recoverly is an approval-first recovery workspace for Kenyan coffee and tea exporters managing overdue B2B invoices. Strands Agents coordinates specialized recovery roles that turn an invoice and contract into a structured case, prepare an appropriate collection action, keep a human operator in control, and reconcile payments through the configured payment methods back to the case.
+Recoverly is an autonomous Professional Agent for Kenyan coffee and tea exporters managing overdue B2B invoices. Built with the Strands Agents SDK, it wakes on a persistent schedule, finds cases that need attention, sends safe routine reminders, watches for payment, and asks an operator in Slack only when a dispute, anomaly, high-value balance, call, final notice, or legal step requires judgment.
 
 **[▶ Watch the Recoverly demo on YouTube](https://www.youtube.com/watch?v=4p-7WtbMgEM)**
 
@@ -8,19 +8,19 @@ The primary demonstration flow is:
 
 1. Upload a contract and invoice to the Recoverly Slack channel.
 2. Pair the documents and extract the buyer, invoice, balance, due date, and governing-law context.
-3. Run preflight, investigation, diplomacy, tone review, and escalation guidance.
-4. Let an operator approve, revise, or reject an outbound collection action.
-5. Send an approved email or place an approved call.
+3. Leave Recoverly running while its Strands agent checks the queue every 15 minutes.
+4. Let the agent send policy-approved day-7-to-day-14 reminders without operator busywork.
+5. Review Slack only when the agent asks for a real decision, such as a dispute or escalation.
 6. Give the buyer a case-specific payment portal offering configured card, USDC, wire, and ACH options.
 7. Verify the selected method's provider response or signed webhook, or obtain operator confirmation for bank transfers, then match the payment to the case and update the balance. The USDC watcher also publishes receipts to Slack, the local console, and email.
 
-> Recoverly is a prototype for controlled demonstrations. It is not legal advice, a production collections service, or an unattended enforcement tool. Outbound communication and payments must be configured deliberately and remain subject to operator approval.
+Calls, final notices, disputed cases, high-value cases, and legal steps always require an operator decision. The autonomous path is limited to ordinary reminders that pass deterministic policy checks.
 
 ## Judge quick start
 
 ### 1. Project overview
 
-Recoverly helps Kenyan coffee and tea exporters recover overdue B2B invoices without losing control of customer communications. A team of focused AI roles reads uploaded contract and invoice PDFs, identifies risk and payment context, drafts a professional next step, and presents it for a human operator to approve. When a buyer pays, Recoverly checks the API response or signed webhook for the selected payment method, matches the transaction to the case, and reconciles the balance. Wire and ACH transfers use operator confirmation of receipt.
+Recoverly removes the repetitive work of checking due dates, choosing the next recovery step, sending ordinary follow-ups, and monitoring settlement. One Strands agent runs in the background and calls application tools to inspect every actionable case. It completes routine, low-risk reminders itself and routes judgment-heavy work to Slack with the evidence and reason an operator must decide. Provider confirmations are matched to the case and reconciled against its balance.
 
 ### 2. External apps and services used
 
@@ -52,8 +52,9 @@ Recoverly is tested with an isolated automated suite covering case intake, docum
 
 - **Slack-first case intake** — contract and invoice uploads create and enrich a recovery case.
 - **Document pairing and preflight** — reads PDFs, identifies key case facts, and routes work by balance and risk.
-- **Specialized recovery roles** — Preflight, Investigator, Diplomat, Tone Coach, Voice Agent, Payment Agent, Escalator, and AAA Specialist contribute a focused step to the workflow.
-- **Human-in-the-loop controls** — Slack cards provide approve, revise, reject, and escalation actions before a buyer is contacted.
+- **Autonomous Strands worker** — a persistent scheduled agent discovers due work and calls tools that send routine reminders or request a decision.
+- **Specialized recovery skills** — Preflight, Investigator, Diplomat, Tone Coach, Voice, Payment, Escalator, and AAA modules provide focused case capabilities.
+- **Decision-only interruption** — Slack cards appear for disputes, anomalies, high balances, calls, final notices, and escalation actions.
 - **Professional communications** — builds invoice reminders, demand-letter drafts, email messages, and call scripts.
 - **Voice escalation** — uses Twilio for approved buyer calls and records the outcome in the case activity.
 - **Payments** — offers configured payment methods and reconciles confirmed amounts against the case balance. Available methods are Paystack cards, Hedera USDC, wire transfers, and ACH instructions. See [Payments](#payments) for confirmation details.
@@ -65,12 +66,14 @@ Recoverly is tested with an isolated automated suite covering case intake, docum
 ```mermaid
 flowchart LR
     A[Slack: contract + invoice] --> B[Concierge and intake pairing]
-    B --> S[Strands workflow dispatch]
-    S --> C[Preflight + Investigator]
-    C --> D[Diplomat + Tone Coach]
-    D --> E{Operator approval in Slack}
-    E -->|Approve| F[Email via Resend / call via Twilio]
-    E -->|Escalate| G[AAA Specialist]
+    B --> Q[Case queue]
+    T[Persistent APScheduler job] --> S[Recoverly Strands agent]
+    Q --> S
+    S --> C[list_actionable_cases tool]
+    C --> R{Deterministic policy}
+    R -->|Routine and low risk| F[Send reminder via Resend]
+    R -->|Judgment required| E[Decision card in Slack]
+    E -->|Approve or revise| G[Specialized recovery action]
     F --> H{Payment portal: selected method}
     H --> P[Card: Paystack]
     H --> U[USDC: Hedera / HashPack]
@@ -81,7 +84,7 @@ flowchart LR
     V --> K[Reconcile case balance]
     M --> K
     O --> K
-    K --> L[Slack receipt + console activity + email]
+    K --> L[Receipt + audit event]
 ```
 
 ## Project structure
@@ -91,7 +94,7 @@ recoverly/
 ├── src/
 │   ├── webapp.py                # Flask app and registered routes
 │   ├── config.py                # Environment-driven configuration
-│   ├── agents/                  # Strands runtime, recovery roles, tools, and case state
+│   ├── agents/                  # Autonomous Strands agent, tools, scheduler, roles, and case state
 │   ├── concierge/               # Slack intake, cards, actions, email workflow
 │   ├── preflight/               # PDF extraction, document pairing, risk routing
 │   ├── diplomat/                # Collection-message templates and delivery
@@ -106,7 +109,7 @@ recoverly/
 ├── output/                      # Generated letters and documents
 ├── samples/                     # Sample intake material
 ├── tools/                       # Local simulation and configuration commands
-├── tests/                       # Local automated tests (excluded from Git)
+├── tests/                       # Committed isolated reliability tests
 ├── .env.example                 # Safe environment-variable template
 ├── requirements.txt             # Python dependencies
 └── README.md
@@ -117,7 +120,8 @@ recoverly/
 | Area | Technology | Purpose |
 |---|---|---|
 | Application | Python and Flask | Webhooks, payment portal, local console, and HTTP routes |
-| Agent runtime | Strands Agents SDK | Role-specific agents, read-only case tools, model invocation, and event dispatch |
+| Agent runtime | Strands Agents SDK | Autonomous reasoning cycle and consequential recovery tools |
+| Background work | APScheduler with a SQLite job store | Persistent 15-minute recovery cycle with one concurrent run |
 | Collaboration | Slack Events API, Block Kit, and interactive actions | Intake, operator approvals, and case notifications |
 | AI workflow | OpenAI-compatible LLM provider | Drafting, analysis, tone review, and role-specific recommendations |
 | Email | Resend; Gmail inbox in demo | Resend sends notices and receipts; Gmail displays received messages |
@@ -148,6 +152,9 @@ RECOVERLY_QWEN_BASE_URL=https://dashscope-intl.aliyuncs.com/compatible-mode/v1
 LLM_TIER=1
 STRANDS_ENABLED=1
 STRANDS_MAX_TOKENS=800
+AUTONOMOUS_AGENT_ENABLED=1
+AUTONOMOUS_AGENT_INTERVAL_MINUTES=15
+AUTONOMOUS_MAX_BALANCE_USD=20000
 ```
 
 Check the configuration and start the application:
@@ -221,9 +228,11 @@ Configure a Slack app with:
 
 The operator reviews all approve/revise/reject cards in that channel. Do not enable live communication paths until Slack request signing is configured.
 
-## Strands agent workflow
+## Strands autonomous agent
 
-The Flask application dispatches workflow events to Strands in the background so Slack webhooks can return quickly. Each role has its own system policy and model selection. Strands receives a read-only `read_recovery_case` tool; sending messages, placing calls, changing payment status, and legal escalation remain controlled by the application and its operator approval actions.
+Starting the Flask application also starts an APScheduler interval job backed by `data/recoverly_jobs.sqlite`. Every 15 minutes, one Recoverly agent built with the Strands Agents SDK calls `list_actionable_cases`, then executes the tool assigned to every returned case. `auto_send_routine_reminder` performs real Resend delivery only for ordinary cases that are 7–14 days overdue, below the configured balance ceiling, have a recipient, are open, and contain no dispute, legal-threat, anomaly, or halt signal. The tool records a receipt and cannot send twice on the same day.
+
+All other situations use `request_operator_decision`, which posts one evidence-based Slack card and waits for approve, revise, or reject input. Calls, final notices, and legal actions always require a person. Payment webhooks and watchers continue the workflow by matching provider-confirmed transfers and closing or updating the case. The browser console is an optional audit view; operators do not need to keep it open or manage the routine queue.
 
 The normal flow runs through `python -m src.webapp`. A role can also be invoked directly for development by passing a task after the module name:
 
@@ -251,7 +260,7 @@ For production, these records should move to a transactional database such as Po
 
 ## Testing
 
-The local verification run passed **298 tests**. Test files and verification artifacts are excluded from this repository as configured in `.gitignore`; a fresh clone does not include the test suite. The following commands require the local tests directory:
+The test suite is committed so judges can reproduce the reliability checks. It covers case intake, document pairing, approvals, autonomous policy gates, duplicate-send prevention, payment routing, transfer matching, reconciliation, and notification handling. External network calls are blocked during tests.
 
 ```powershell
 .venv/Scripts/python.exe -m pytest -q
