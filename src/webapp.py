@@ -54,6 +54,9 @@ def create_app() -> Flask:
     for blueprint in BLUEPRINTS:
         app.register_blueprint(blueprint)
     _warn_on_open_endpoints()
+    from src.agents.background import start_background_agent
+
+    start_background_agent()
     log.info("registered %d blueprints", len(BLUEPRINTS))
     return app
 
