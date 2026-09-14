@@ -206,6 +206,16 @@ def test_payment_webhook_security(flask_client, monkeypatch):
     assert load_case_state(CASE)["amount_paid_usd"] == 0
 
 
+def test_paystack_kes_charge_reconciles_in_usd(flask_client, monkeypatch):
+    monkeypatch.setenv("PAYSTACK_SECRET_KEY", "test-key")
+    monkeypatch.setenv("PAYSTACK_CHARGE_CURRENCY", "KES")
+    monkeypatch.setenv("PAYSTACK_USD_RATE", "130")
+    update_case_state(CASE, outstanding_balance_usd=8000)
+    response = charge(flask_client, 130 * 100 * 100, reference="kes-1", currency="KES")
+    assert response.status_code == 200
+    assert response.get_json()["amount_applied_usd"] == 100.0
+
+
 def test_unknown_checkout_returns_404(flask_client):
     assert flask_client.get(f"/pay/{CASE}").status_code == 404
 

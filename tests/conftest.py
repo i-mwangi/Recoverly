@@ -59,6 +59,8 @@ def isolated_data(tmp_path, monkeypatch):
         replace(settings, data=replace(settings.data, audit_trail_jsonl=audit_trail)),
     )
     monkeypatch.setenv("CASE_LOCK_DIR", str(tmp_path / "locks"))
+    monkeypatch.delenv("PAYSTACK_CHARGE_CURRENCY", raising=False)
+    monkeypatch.delenv("PAYSTACK_USD_RATE", raising=False)
 
     return tmp_path
 

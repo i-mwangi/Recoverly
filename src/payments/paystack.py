@@ -25,6 +25,17 @@ CURRENCY_SMALLEST_UNIT: Final = 100
 
 PAYMENT_ID_PREFIX: Final = "paystack_"
 
+
+def charge_currency() -> str:
+    return os.getenv("PAYSTACK_CHARGE_CURRENCY", DEFAULT_CURRENCY).strip().upper() or DEFAULT_CURRENCY
+
+
+def usd_rate() -> Decimal:
+    rate = Decimal(os.getenv("PAYSTACK_USD_RATE", "1").strip() or "1")
+    if not rate.is_finite() or rate <= 0:
+        raise PaymentProviderError("PAYSTACK_USD_RATE must be a positive number")
+    return rate
+
 STATUS_MAP: Final[dict[str, PaymentStatus]] = {
     "success": PaymentStatus.COMPLETED,
     "successful": PaymentStatus.COMPLETED,
@@ -91,6 +102,11 @@ class PaystackProvider(PaymentProvider):
             raise PaymentProviderError("paystack requires a customer_email in metadata")
 
         normalized_currency = currency.upper()
+        if normalized_currency == "USD" and charge_currency() != "USD":
+            metadata = {**metadata, "usd_amount": str(amount)}
+            amount = (Decimal(str(amount)) * usd_rate()).quantize(Decimal("0.01"))
+            normalized_currency = charge_currency()
+            self.assert_supported(normalized_currency)
         smallest_units = int((Decimal(str(amount)) * CURRENCY_SMALLEST_UNIT).quantize(Decimal("1")))
         reference = str(metadata.get("reference") or f"recoverly-{uuid.uuid4().hex[:16]}")
 
