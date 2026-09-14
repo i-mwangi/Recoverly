@@ -5,7 +5,6 @@ import json
 import logging
 import os
 from dataclasses import dataclass, field
-from decimal import Decimal
 from typing import Any, Final
 
 from src.agents.base import audit

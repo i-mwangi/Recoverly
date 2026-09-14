@@ -31,7 +31,6 @@ def paystack_webhook():
     data = payload.get("data")
     if not isinstance(data, dict) or data.get("status") != "success":
         return jsonify(error="invalid charge"), 400
-    # The case ledger is denominated in USD. Never silently treat KES/NGN as USD.
     if data.get("currency") != "USD":
         return jsonify(error="unsupported settlement currency"), 422
     metadata = data.get("metadata")

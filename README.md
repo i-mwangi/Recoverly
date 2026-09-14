@@ -4,7 +4,7 @@ Recoverly is an autonomous Professional Agent for Kenyan coffee and tea exporter
 
 ## Agents for Humans Hackathon
 
-Recoverly is built for the [Agents for Humans Hackathon](https://agentsforhumans.devpost.com/) in the **Professional Agents** track. It removes repetitive accounts-receivable work: monitoring overdue invoices, choosing safe routine follow-up, sending reminders, and matching confirmed payments to cases. The Strands agent works in the background and surfaces only decisions that need human judgment.
+Recoverly was built for the [Agents for Humans Hackathon](https://agentsforhumans.devpost.com/) in the **Professional Agents** track. It was developed locally during the submission period and pushed to GitHub on September 13–14, 2026, which is why the commit history is short. It removes repetitive accounts-receivable work: monitoring overdue invoices, choosing safe routine follow-up, sending reminders, and matching confirmed payments to cases. The Strands agent works in the background and surfaces only decisions that need human judgment.
 
 **Slack is the main operator surface.** Teams use it for document intake and the approve, revise, or reject decisions that Recoverly requests. The HTML console at `/console` is still usable, but it is an optional local audit dashboard for showing case history and agent activity during a demo; it is not required to operate the agent.
 
@@ -33,7 +33,7 @@ Recoverly connects to more than three external applications in the working flow:
 | App / service | How Recoverly uses it |
 |---|---|
 | Slack | Contract and invoice intake, operator approvals, recovery cards, and payment receipts |
-| Payment options | Paystack card checkout, on-chain USDC transfers, and wire/ACH bank instructions; confirmation follows the selected method |
+| Payment options | Paystack card checkout, stablecoin settlement, and wire/ACH bank instructions; confirmation follows the selected method |
 | Resend | Approved demand/reminder email delivery and settlement notifications |
 | Gmail | Inbox used in the demo to receive and review collection notices and payment receipts; email delivery uses Resend, with no direct Gmail API integration |
 | Twilio | Operator-approved buyer calls and call-status updates |
@@ -57,7 +57,7 @@ Recoverly is tested with an isolated automated suite covering case intake, docum
 - **Decision-only interruption** — Slack cards appear for disputes, anomalies, high balances, calls, final notices, and escalation actions.
 - **Professional communications** — builds invoice reminders, demand-letter drafts, email messages, and call scripts.
 - **Voice escalation** — uses Twilio for approved buyer calls and records the outcome in the case activity.
-- **Payments** — offers configured payment methods and reconciles confirmed amounts against the case balance. Available methods are Paystack cards, on-chain USDC transfers, wire transfers, and ACH instructions. See [Payments](#payments) for confirmation details.
+- **Payments** — offers configured payment methods and reconciles confirmed amounts against the case balance. Available methods are Paystack cards, stablecoin settlement, wire transfers, and ACH instructions. See [Payments](#payments) for confirmation details.
 - **Local operator console** — shows case activity and agent progress at `/console`.
 - **Auditable local state** — keeps case state, activity, payment ledger entries, and audit events locally for the prototype.
 
@@ -77,7 +77,7 @@ flowchart LR
     E -->|Approve or revise| G[Specialized recovery action]
     F --> H{Payment portal: selected method}
     H --> P[Card: Paystack]
-    H --> U[On-chain USDC transfer]
+    H --> U[Stablecoin settlement]
     H --> W[Wire / ACH bank instructions]
     P --> V[Verify signed provider webhook]
     U --> M[Verify Mirror Node API response]
@@ -128,8 +128,8 @@ recoverly/
 | AI workflow | OpenAI-compatible LLM provider | Drafting, analysis, tone review, and role-specific recommendations |
 | Email | Resend; Gmail inbox in demo | Resend sends notices and receipts; Gmail displays received messages |
 | Voice | Twilio | Approved buyer calls and call-status webhooks |
-| Payments | Paystack cards, on-chain USDC transfers, wire / ACH | Method-specific checkout or instructions and payment reconciliation |
-| Wallet | Compatible USDC wallet | Buyer wallet used to send an on-chain USDC transfer |
+| Payments | Paystack cards, stablecoin settlement, wire / ACH | Method-specific checkout or instructions and payment reconciliation |
+| Wallet | Compatible stablecoin wallet | Buyer wallet used to complete stablecoin settlement |
 | Document handling | pypdf | Contract and invoice text extraction |
 | Local exposure | ngrok | Public HTTPS URLs for local webhook demonstrations |
 | Storage | JSON and JSONL files | Prototype case state, audit trail, and watcher state |
@@ -182,6 +182,22 @@ The local server listens on `http://127.0.0.1:8400` by default.
 
 For Slack or Twilio callbacks during a local demo, expose port 8400 through ngrok and use the resulting HTTPS URL in the provider configuration.
 
+## Tools
+
+Run each script from the repository root with `.venv/Scripts/python.exe -m tools.<name>`.
+
+| Script | Purpose | Useful options |
+|---|---|---|
+| `config_check` | Verifies environment variables and installed dependencies | — |
+| `case_status` | Prints a case's state and recent events | `--events` |
+| `cadence_scheduler` | Posts the next reminder stage for due cases to Slack | `--channel`, `--list-stages` |
+| `invoice_calendar_tick` | Runs one invoice-calendar pass | `--dry-run`, `--today` |
+| `tz_aware_day_calc` | Calculates overdue days in the operator's timezone | — |
+| `simulate_email_intake` | Feeds an email body into case intake | `--file`, `--subject`, `--sender` |
+| `simulate_buyer_reply` | Injects a templated buyer reply into a case | `--case`, `--reply`, `--list-replies` |
+| `simulate_hitl_outcomes` | Replays operator approve, revise, and reject decisions | `--user` |
+| `simulate_payment_received` | Simulates a confirmed payment for reconciliation | `--channel` |
+
 ## Payments
 
 The buyer opens `/pay/<case_id>` and selects a configured payment method. The saved case supplies the amount and invoice context. Confirmation depends on the selected provider; opening checkout or displaying instructions does not itself confirm payment.
@@ -191,7 +207,7 @@ The buyer opens `/pay/<case_id>` and selects a configured payment method. The sa
 | Method | Payment flow | Confirmation |
 |---|---|---|
 | Card via Paystack | Creates a checkout session and redirects the buyer to the provider | A signed `charge.success` webhook reconciles the payment to the case |
-| On-chain USDC transfer | Provides receiving account, token, amount, and `recoverly:<case_id>` memo; buyer pays with a compatible wallet | The separate wallet watcher verifies the provider response, matches the transfer, and reconciles it |
+| Stablecoin settlement | Provides receiving account, token, amount, and `recoverly:<case_id>` memo; buyer pays with a compatible wallet | The separate wallet watcher verifies the provider response, matches the transfer, and reconciles it |
 | Wire transfer | Displays configured bank details and invoice reference | Operator confirms receipt using a transaction reference |
 | ACH | Uses the configured bank-instruction flow | Operator confirms receipt; no automatic bank API monitoring is implemented |
 
@@ -206,7 +222,7 @@ Configure the variables for the methods you intend to offer:
 | Method | Environment variables |
 |---|---|
 | Card via Paystack | `PAYSTACK_SECRET_KEY`, `PAYSTACK_CALLBACK_URL`; configure `/webhooks/paystack` for settlement events |
-| On-chain USDC transfer | `ONCHAIN_STABLECOIN_NETWORK`, `ONCHAIN_STABLECOIN_RECEIVING_ACCOUNT`, `ONCHAIN_STABLECOIN_TOKEN_ID`, optional `ONCHAIN_STABLECOIN_INDEXER_URL`, `ONCHAIN_STABLECOIN_POLL_INTERVAL_SEC` |
+| Stablecoin settlement | `ONCHAIN_STABLECOIN_NETWORK`, `ONCHAIN_STABLECOIN_RECEIVING_ACCOUNT`, `ONCHAIN_STABLECOIN_TOKEN_ID`, optional `ONCHAIN_STABLECOIN_INDEXER_URL`, `ONCHAIN_STABLECOIN_POLL_INTERVAL_SEC` |
 | Wire / ACH instructions | `WIRE_BENEFICIARY_NAME`, `WIRE_BANK_NAME`, `WIRE_BANK_ADDRESS`, `WIRE_SWIFT_BIC`, `WIRE_ACCOUNT_NUMBER`, `WIRE_ROUTING_CODE` |
 | Shared payment links | `RECOVERLY_PAYLINK_BASE` pointing to the public application URL ending in `/pay` |
 

@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import logging
-import sys
 
 from src.config import settings, validate_runtime_config
 from src.llm.provider import provider_info

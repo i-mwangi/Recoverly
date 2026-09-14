@@ -178,8 +178,6 @@ def lite_write_off(context: ActionContext) -> ActionResult:
 @register("voice_dial_approve")
 def approve_voice_dial(context: ActionContext) -> ActionResult:
     case = context.case()
-    # A demo document intentionally contains no real buyer telephone number.
-    # Route that case to the operator's Twilio-verified demo phone instead.
     if not (case.get("customer_phone") or case.get("phone")) and settings.demo_mode:
         demo_phone = os.getenv("TWILIO_VERIFIED_DEMO_NUMBER", "").strip()
         if demo_phone:

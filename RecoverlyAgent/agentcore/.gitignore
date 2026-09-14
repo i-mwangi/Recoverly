@@ -1,16 +1,11 @@
-# Secrets (local environment files are never committed)
 .env.local
 
-# CDK Build Artifacts
 cdk/cdk.out/
 cdk/node_modules/
 cdk/package-lock.json
 
-# CLI Internals
 .cli/*
 
-# Ephemeral Staging
 .cache/*
 
-# Exception: Commit the State
 !.cli/deployed-state.json

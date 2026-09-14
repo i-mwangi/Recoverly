@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import pytest
 
 from src.agents._case_state import stop_case, update_case_state
 from src.payments.dedup import already_processed, record_processed, synthetic_id

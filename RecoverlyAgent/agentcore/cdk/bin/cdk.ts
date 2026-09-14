@@ -21,21 +21,14 @@ function toStackName(projectName: string, targetName: string): string {
 }
 
 async function main() {
-  // Config root is parent of cdk/ directory. The CLI sets process.cwd() to agentcore/cdk/.
   const configRoot = path.resolve(process.cwd(), '..');
   const configIO = new ConfigIO({ baseDir: configRoot });
 
   const spec = await configIO.readProjectSpec();
   const targets = await configIO.readAWSDeploymentTargets();
 
-  // The vended CDK project compiles against the published @aws/agentcore-cdk
-  // schema type, which may lag the CLI's own AgentCoreProjectSpec (e.g. payments,
-  // harnesses, gateway fields). Cast once so those fields are reachable.
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const specAny = spec as any;
 
-  // Extract MCP configuration from project spec.
-  // Gateway fields are stored in agentcore.json but may not yet be on the
   const mcpSpec = specAny.agentCoreGateways?.length
     ? {
         agentCoreGateways: specAny.agentCoreGateways,
@@ -44,25 +37,18 @@ async function main() {
       }
     : undefined;
 
-  // Read deployed state for credential ARNs (populated by pre-deploy identity setup)
   let deployedState: Record<string, unknown> | undefined;
   try {
     deployedState = JSON.parse(fs.readFileSync(path.join(configRoot, '.cli', 'deployed-state.json'), 'utf8'));
   } catch {
-    // Deployed state may not exist on first deploy
   }
 
   if (targets.length === 0) {
     throw new Error('No deployment targets configured. Please define targets in agentcore/aws-targets.json');
   }
 
-  // Read harness configs: the full validated spec drives the CFN resource; the
-  // role-scoped fields drive the IAM role + container build.
   const projectRoot = path.resolve(configRoot, '..');
 
-  // Read non-S3 KB connector-config files and pass their parsed contents to the
-  // L3 verbatim. The L3 does not read files; it expects the parsed
-  // connectorParameters keyed by the data source's connectorConfigFile path.
   const connectorParametersByFile: Record<string, Record<string, unknown>> = {};
   for (const kb of specAny.knowledgeBases ?? []) {
     for (const ds of kb.dataSources ?? []) {
@@ -79,7 +65,6 @@ async function main() {
     }
   }
 
-  // Synthesize an AWS::BedrockAgentCore::Harness resource for each harness entry in the spec.
   const harnessConfigs: HarnessConfig[] = [];
   for (const entry of specAny.harnesses ?? []) {
     const harnessDir = path.resolve(projectRoot, entry.path);
@@ -89,8 +74,6 @@ async function main() {
       harnessConfigs.push({
         name: entry.name,
         executionRoleArn: harnessSpec.executionRoleArn,
-        // Only an `existing` memory ref carries a name to wire IAM against; managed memory is
-        // owned by the harness (no sibling) and disabled has none — both resolve to undefined.
         memoryName: harnessSpec.memory?.mode === 'existing' ? harnessSpec.memory.name : undefined,
         containerUri: harnessSpec.containerUri,
         hasDockerfile: !!harnessSpec.dockerfile,
@@ -102,7 +85,6 @@ async function main() {
         efsAccessPoints: harnessSpec.efsAccessPoints,
         s3AccessPoints: harnessSpec.s3AccessPoints,
         apiFormat: harnessSpec.model?.apiFormat,
-        // Full spec + dir drive the AWS::BedrockAgentCore::Harness CFN resource.
         spec: harnessSpec,
         harnessDir,
       });
@@ -119,7 +101,6 @@ async function main() {
     const env = toEnvironment(target);
     const stackName = toStackName(spec.name, target.name);
 
-    // Extract credentials from deployed state for this target
     const targetState = (deployedState as Record<string, unknown>)?.targets as
       | Record<string, Record<string, unknown>>
       | undefined;
@@ -128,7 +109,6 @@ async function main() {
       | Record<string, { credentialProviderArn: string; clientSecretArn?: string }>
       | undefined;
 
-    // Payment credential provider ARNs live in the same credentials map as identity credentials
     const paymentCredentials = credentials;
 
     const paymentSpec = specAny.payments?.length
@@ -171,8 +151,6 @@ async function main() {
               }
               const credentialProviderArn = paymentCredentials?.[c.credentialName]?.credentialProviderArn;
               if (!credentialProviderArn) {
-                // Fail fast with an actionable message rather than passing an empty
-                // ARN that fails opaquely server-side at CreatePaymentConnector.
                 throw new Error(
                   `Payment connector "${c.name}" on manager "${p.name}" references credential ` +
                     `"${c.credentialName}", but no deployed credential provider was found for it. ` +

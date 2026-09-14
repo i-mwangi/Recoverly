@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import datetime as dt
 
-import pytest
 
 from src.investigator.pattern_tag import (
     InternalHistorySnapshot,

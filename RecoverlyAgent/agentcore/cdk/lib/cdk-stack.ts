@@ -12,11 +12,6 @@ import { CfnOutput, Stack, type StackProps } from 'aws-cdk-lib';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import { Construct } from 'constructs';
 
-/**
- * Harness deployment config: role-scoped fields (for IAM role + container build)
- * plus the full validated spec + its config directory so the L3 construct can
- * synthesize the AWS::BedrockAgentCore::Harness resource.
- */
 export type HarnessConfig = HarnessDeploymentConfig;
 
 export interface ManualPaymentConnectorSpec {
@@ -49,30 +44,11 @@ export interface PaymentSpec {
 }
 
 export interface AgentCoreStackProps extends StackProps {
-  /**
-   * The AgentCore project specification containing agents, memories, and credentials.
-   */
   spec: AgentCoreProjectSpec;
-  /**
-   * The MCP specification containing gateways and servers.
-   */
   mcpSpec?: AgentCoreMcpSpec;
-  /**
-   * Credential provider ARNs from deployed state, keyed by credential name.
-   */
   credentials?: Record<string, { credentialProviderArn: string; clientSecretArn?: string }>;
-  /**
-   * Harness role configurations.
-   */
   harnesses?: HarnessConfig[];
-  /**
-   * Parsed connectorParameters for non-S3 KB data sources, keyed by
-   * connectorConfigFile path. Forwarded to AgentCoreApplication.
-   */
   connectorParametersByFile?: Record<string, Record<string, unknown>>;
-  /**
-   * Payment specifications with resolved credential provider ARNs.
-   */
   paymentSpec?: PaymentSpec[];
 }
 
@@ -80,13 +56,6 @@ function toCdkId(name: string): string {
   return name.replace(/_/g, '');
 }
 
-/**
- * Decide whether a deployed runtime should receive payment env vars + IAM grants.
- * Payments today only ships a runtime shim for Python HTTP runtimes; injecting
- * AGENTCORE_PAYMENT_* env vars into TypeScript / MCP / A2A / AGUI runtimes
- * would surface env vars they cannot consume and would dilute least-privilege
- * IAM grants for runtimes that never call ProcessPayment.
- */
 function isPaymentEligibleAgent(agent: { entrypoint?: string; protocol?: string }): boolean {
   if (agent.protocol && agent.protocol !== 'HTTP') {
     return false;
@@ -96,14 +65,7 @@ function isPaymentEligibleAgent(agent: { entrypoint?: string; protocol?: string 
   return entrypointFile.endsWith('.py');
 }
 
-/**
- * CDK Stack that deploys AgentCore infrastructure.
- *
- * This is a thin wrapper that instantiates L3 constructs.
- * All resource logic and outputs are contained within the L3 constructs.
- */
 export class AgentCoreStack extends Stack {
-  /** The AgentCore application containing all agent environments */
   public readonly application: AgentCoreApplication;
 
   constructor(scope: Construct, id: string, props: AgentCoreStackProps) {
@@ -111,8 +73,6 @@ export class AgentCoreStack extends Stack {
 
     const { spec, mcpSpec, credentials, harnesses, connectorParametersByFile, paymentSpec } = props;
 
-    // Create AgentCoreApplication with all agents and harness roles
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const appProps: Record<string, unknown> = { spec };
     if (harnesses?.length) {
       appProps.harnesses = harnesses;
@@ -125,7 +85,6 @@ export class AgentCoreStack extends Stack {
     }
     this.application = new AgentCoreApplication(this, 'Application', appProps as any);
 
-    // Create AgentCoreMcp if there are gateways configured
     if (mcpSpec?.agentCoreGateways && mcpSpec.agentCoreGateways.length > 0) {
       new AgentCoreMcp(this, 'Mcp', {
         projectName: spec.name,
@@ -136,7 +95,6 @@ export class AgentCoreStack extends Stack {
       });
     }
 
-    // Create payment infrastructure via CFN constructs
     if (paymentSpec && paymentSpec.length > 0) {
       for (const payment of paymentSpec) {
         const mgrId = toCdkId(payment.name);
@@ -151,10 +109,6 @@ export class AgentCoreStack extends Stack {
 
         const prefix = `AGENTCORE_PAYMENT_${payment.name.toUpperCase().replace(/-/g, '_')}`;
 
-        // Wire env vars from construct output tokens into eligible agent environments only.
-        // See isPaymentEligibleAgent — non-Python or non-HTTP runtimes have no shim that
-        // can consume these env vars, and giving them sts:AssumeRole on the
-        // ProcessPaymentRole would broaden the privilege surface unnecessarily.
         for (const env of this.application.environments.values()) {
           if (!isPaymentEligibleAgent(env.agent)) {
             continue;
@@ -162,9 +116,6 @@ export class AgentCoreStack extends Stack {
           env.runtime.addEnvironmentVariable(`${prefix}_MANAGER_ARN`, manager.paymentManagerArn);
           env.runtime.addEnvironmentVariable(`${prefix}_PROCESS_PAYMENT_ROLE_ARN`, manager.processPaymentRoleArn);
 
-          // Grant runtime execution role permission to assume the ProcessPaymentRole.
-          // The ProcessPaymentRole's trust policy allows AccountRootPrincipal, but the
-          // caller still needs sts:AssumeRole on its own role to perform the assumption.
           env.runtime.role.addToPrincipalPolicy(
             new iam.PolicyStatement({
               actions: ['sts:AssumeRole'],
@@ -172,17 +123,6 @@ export class AgentCoreStack extends Stack {
             })
           );
 
-          // Grant payment data-plane actions directly to the runtime role.
-          //
-          // NOTE: This deviates from the canonical role model in the AgentCore Payments
-          // beta guide, which assigns Get/List/Create instrument+session actions to a
-          // separate ManagementRole and limits the agent's role to ProcessPayment only.
-          // The current SDK plugin (AgentCorePaymentsPlugin.generate_payment_header)
-          // calls GetPaymentInstrument internally during the 402 auto-pay path, so the
-          // runtime role needs read access. CreatePaymentSession is included so
-          // `agentcore invoke --auto-session` works without a separate ManagementRole
-          // call. Tighten this if the SDK is updated to accept pre-fetched instrument
-          // details and split create-session into a backend-only flow.
           env.runtime.role.addToPrincipalPolicy(
             new iam.PolicyStatement({
               actions: [
@@ -212,7 +152,6 @@ export class AgentCoreStack extends Stack {
           }
         }
 
-        // Create connectors for this manager
         for (const connector of payment.connectors) {
           const connId = toCdkId(connector.name);
           const schemaConnector =
@@ -228,7 +167,6 @@ export class AgentCoreStack extends Stack {
             projectName: spec.name,
             paymentManager: manager,
             connector: schemaConnector,
-            // Remove these legacy manual fields after the new L3 release is pinned.
             connectorName: connector.name,
             connectorType: connector.provider,
             ...(connector.provisionMode !== 'QUICK_CREATE' && {
@@ -241,7 +179,6 @@ export class AgentCoreStack extends Stack {
             compatibilityProps as unknown as ConstructorParameters<typeof AgentCorePaymentConnector>[2]
           );
 
-          // Wire first connector's ID as env var (eligible agents only)
           if (connector === payment.connectors[0]) {
             for (const env of this.application.environments.values()) {
               if (!isPaymentEligibleAgent(env.agent)) continue;
@@ -266,7 +203,6 @@ export class AgentCoreStack extends Stack {
           }
         }
 
-        // CFN Outputs for post-deploy state parsing
         new CfnOutput(this, `Payment${mgrId}ManagerArn`, {
           value: manager.paymentManagerArn,
         });
@@ -282,7 +218,6 @@ export class AgentCoreStack extends Stack {
       }
     }
 
-    // Stack-level output
     new CfnOutput(this, 'StackNameOutput', {
       description: 'Name of the CloudFormation Stack',
       value: this.stackName,

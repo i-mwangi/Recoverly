@@ -6,7 +6,6 @@ import hmac
 import json
 import time
 
-import pytest
 
 
 def _resend_headers(body):

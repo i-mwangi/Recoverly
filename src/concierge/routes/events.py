@@ -14,7 +14,6 @@ from flask import Blueprint, Response, jsonify, request
 from src.agents.base import audit
 from src.concierge.slack_client import post_message
 from src.local_console import service as local_service
-from src.config import settings
 from src.voice.security import strict_mode, verify_slack_signature
 
 log = logging.getLogger("recoverly.concierge.routes.events")
@@ -207,9 +206,6 @@ def slack_events() -> tuple[Response, int]:
     if not (is_message_file_share or is_file_shared_event):
         return jsonify({"ok": True}), 200
 
-    # Slack uses two payload shapes for uploads.  A channel message contains a
-    # ``files`` collection, while the bot-level ``file_shared`` event only has
-    # a ``file_id`` and ``channel_id``.  Normalize both before downloading.
     channel = str(event.get("channel") or event.get("channel_id") or "")
     files = [item for item in (event.get("files") or []) if isinstance(item, dict)]
     if not files and event.get("file_id"):

@@ -14,7 +14,6 @@ from src.agents._utils import (
     is_error_envelope,
     parse_json_object,
     safe_float,
-    strip_fenced_blocks,
 )
 from src.utils.sanitize import strip_slack_mentions
 from src.utils.text import extract_code_block, slack_preview, truncate

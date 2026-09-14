@@ -6,7 +6,6 @@ import re
 from typing import Any, Final
 from urllib.parse import quote
 
-from src.agents._utils import safe_float
 from src.concierge.contracts import find_contract_by_buyer
 from src.personas import buyer_id_for
 
@@ -208,8 +207,6 @@ def substitute_placeholders(body: str, context: EmailContext) -> str:
     body = body.replace("[Contact Name]", context.buyer_first_name)
     body = body.replace("[Client Name]", context.buyer_first_name)
     body = body.replace("[Customer Name]", context.buyer_first_name)
-    # AI drafts may use editorial prompts when the intake data has no dates. Do
-    # not send those prompts to a buyer or invent a date that was not supplied.
     body = body.replace(" on [Date, if known; otherwise omit]", "")
     body = body.replace("[Due Date]", context.due_date)
     body = body.replace(

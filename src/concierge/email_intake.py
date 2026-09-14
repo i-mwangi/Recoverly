@@ -3,14 +3,14 @@ from __future__ import annotations
 import logging
 import re
 from dataclasses import dataclass
-from datetime import date, datetime, timezone
+from datetime import datetime, timezone
 from typing import Any, Final
 
 from src.agents.base import audit
 from src.agents._utils import safe_float
 from src.concierge.contracts import find_contract_by_buyer
 from src.config import PROJECT_ROOT
-from src.personas import buyer_id_for, normalize_persona, KNOWN_PERSONAS
+from src.personas import buyer_id_for, KNOWN_PERSONAS
 from src.utils.filelock import append_jsonl
 
 log = logging.getLogger("recoverly.concierge.email_intake")

@@ -32,11 +32,9 @@ data/audit_trail.jsonl
 data/chroma/
 data/attachments/
 
-# Local verification artifacts
 htmlcov/
 coverage.xml
 
-# Private runtime state and generated demo artifacts
 data/
 output/
 tmp/

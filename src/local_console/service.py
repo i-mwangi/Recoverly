@@ -10,7 +10,7 @@ from uuid import uuid4
 
 from src.agents._case_state import load_case_state, update_case_state
 from src.agents._utils import safe_float
-from src.diplomat.templates import build_paylink, render_day7
+from src.diplomat.templates import build_paylink
 from src.concierge.cards import post_card
 from src.preflight.amount_router import select_path
 from src.preflight.pdf_extractor import extract

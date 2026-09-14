@@ -1,7 +1,7 @@
 [
   {
     "name": "default",
-    "account": "732898684532",
+    "account": "YOUR_AWS_ACCOUNT_ID",
     "region": "us-west-2"
   }
 ]

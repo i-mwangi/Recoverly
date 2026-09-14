@@ -134,7 +134,6 @@ def dispatch_email(
     from src.utils.filelock import exclusive_lock
 
     case_id = str(case.get("case_id") or "UNKNOWN")
-    # Serialize repeated approvals for the same case and reuse the successful receipt.
     with exclusive_lock(case_path(case_id).with_suffix(".outbound.lock")):
         state = load_case_state(case_id)
         if state.get("status") in TERMINAL_STATUSES or state.get("halted_reason"):
