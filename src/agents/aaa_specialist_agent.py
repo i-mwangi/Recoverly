@@ -13,7 +13,7 @@ from src.aaa.templates import (
 )
 from src.agents._case_state import add_cost, load_case_state, update_case_state
 from src.agents._utils import is_error_envelope
-from src.agents.base import BandAgentAdapter, audit, extract_case_id, run_agent
+from src.agents.base import StrandsAgentAdapter, audit, extract_case_id, run_agent
 from src.diplomat.templates import outstanding_amount
 from src.llm.provider import complete_async
 from src.utils.text import slack_preview
@@ -85,7 +85,7 @@ def fallback_strategy(
     )
 
 
-class AAASpecialistAdapter(BandAgentAdapter):
+class AAASpecialistAdapter(StrandsAgentAdapter):
     role = "aaa_specialist"
 
     async def handle_message(self, text, msg, tools, history, room_id):

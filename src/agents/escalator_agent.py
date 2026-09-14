@@ -6,7 +6,7 @@ from typing import Any, Final
 
 from src.agents._case_state import add_cost, is_halted, update_case_state
 from src.agents._utils import is_error_envelope, parse_json_object, safe_float
-from src.agents.base import BandAgentAdapter, audit, extract_case_id, run_agent
+from src.agents.base import StrandsAgentAdapter, audit, extract_case_id, run_agent
 from src.llm.provider import complete_async
 from src.utils.text import slack_preview
 
@@ -163,7 +163,7 @@ def _parse_case(text: str) -> dict[str, Any] | None:
     return {"case_id": case_id} if case_id != "UNKNOWN" else None
 
 
-class EscalatorAdapter(BandAgentAdapter):
+class EscalatorAdapter(StrandsAgentAdapter):
     role = "escalator"
 
     async def handle_message(self, text, msg, tools, history, room_id):

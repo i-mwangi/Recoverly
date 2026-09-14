@@ -6,7 +6,7 @@ from typing import Any, Final
 
 from src.agents._case_state import add_cost, is_halted, load_case_state, update_case_state
 from src.agents._utils import is_error_envelope, parse_json_object
-from src.agents.base import BandAgentAdapter, audit, run_agent
+from src.agents.base import StrandsAgentAdapter, audit, run_agent
 from src.diplomat.outbound import OutboundDispatchError, send_day7_reminder
 from src.diplomat.templates import outstanding_amount
 from src.investigator.pattern_tag import tone_for
@@ -90,7 +90,7 @@ def build_cadence_prompt(case: dict[str, Any], day_offset: int, stage: str) -> s
     )
 
 
-class DiplomatAdapter(BandAgentAdapter):
+class DiplomatAdapter(StrandsAgentAdapter):
     role = "diplomat"
 
     async def handle_message(self, text, msg, tools, history, room_id):

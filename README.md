@@ -1,6 +1,6 @@
 # Recoverly
 
-Recoverly is an approval-first recovery workspace for Kenyan coffee and tea exporters managing overdue B2B invoices. It turns an invoice and contract into a structured case, prepares an appropriate collection action, keeps a human operator in control, and reconciles payments through the configured payment methods back to the case.
+Recoverly is an approval-first recovery workspace for Kenyan coffee and tea exporters managing overdue B2B invoices. Strands Agents coordinates specialized recovery roles that turn an invoice and contract into a structured case, prepare an appropriate collection action, keep a human operator in control, and reconcile payments through the configured payment methods back to the case.
 
 **[▶ Watch the Recoverly demo on YouTube](https://www.youtube.com/watch?v=4p-7WtbMgEM)**
 
@@ -65,7 +65,8 @@ Recoverly is tested with an isolated automated suite covering case intake, docum
 ```mermaid
 flowchart LR
     A[Slack: contract + invoice] --> B[Concierge and intake pairing]
-    B --> C[Preflight + Investigator]
+    B --> S[Strands workflow dispatch]
+    S --> C[Preflight + Investigator]
     C --> D[Diplomat + Tone Coach]
     D --> E{Operator approval in Slack}
     E -->|Approve| F[Email via Resend / call via Twilio]
@@ -90,7 +91,7 @@ recoverly/
 ├── src/
 │   ├── webapp.py                # Flask app and registered routes
 │   ├── config.py                # Environment-driven configuration
-│   ├── agents/                  # Recovery-role adapters and case state
+│   ├── agents/                  # Strands runtime, recovery roles, tools, and case state
 │   ├── concierge/               # Slack intake, cards, actions, email workflow
 │   ├── preflight/               # PDF extraction, document pairing, risk routing
 │   ├── diplomat/                # Collection-message templates and delivery
@@ -116,6 +117,7 @@ recoverly/
 | Area | Technology | Purpose |
 |---|---|---|
 | Application | Python and Flask | Webhooks, payment portal, local console, and HTTP routes |
+| Agent runtime | Strands Agents SDK | Role-specific agents, read-only case tools, model invocation, and event dispatch |
 | Collaboration | Slack Events API, Block Kit, and interactive actions | Intake, operator approvals, and case notifications |
 | AI workflow | OpenAI-compatible LLM provider | Drafting, analysis, tone review, and role-specific recommendations |
 | Email | Resend; Gmail inbox in demo | Resend sends notices and receipts; Gmail displays received messages |
@@ -137,6 +139,16 @@ Copy-Item .env.example .env
 ```
 
 Update `.env` with credentials for only the services you plan to demonstrate. Do not commit `.env` or private keys.
+
+Strands is enabled by default and uses the existing OpenAI-compatible Qwen configuration:
+
+```text
+RECOVERLY_QWEN_API_KEY=your-key
+RECOVERLY_QWEN_BASE_URL=https://dashscope-intl.aliyuncs.com/compatible-mode/v1
+LLM_TIER=1
+STRANDS_ENABLED=1
+STRANDS_MAX_TOKENS=800
+```
 
 Check the configuration and start the application:
 
@@ -209,20 +221,16 @@ Configure a Slack app with:
 
 The operator reviews all approve/revise/reject cards in that channel. Do not enable live communication paths until Slack request signing is configured.
 
-## Running the role adapters
+## Strands agent workflow
 
-The local application runs with `python -m src.webapp`. The legacy remote role adapters below require an optional agent runtime and credentials, which are not included in the default installation. These commands are reference entry points for that optional integration:
+The Flask application dispatches workflow events to Strands in the background so Slack webhooks can return quickly. Each role has its own system policy and model selection. Strands receives a read-only `read_recovery_case` tool; sending messages, placing calls, changing payment status, and legal escalation remain controlled by the application and its operator approval actions.
+
+The normal flow runs through `python -m src.webapp`. A role can also be invoked directly for development by passing a task after the module name:
 
 ```powershell
-.venv/Scripts/python.exe -m src.agents.preflight_agent
-.venv/Scripts/python.exe -m src.agents.investigator_agent
-.venv/Scripts/python.exe -m src.agents.diplomat_agent
-.venv/Scripts/python.exe -m src.agents.tone_coach_agent
-.venv/Scripts/python.exe -m src.agents.concierge_agent
-.venv/Scripts/python.exe -m src.agents.payment_agent
-.venv/Scripts/python.exe -m src.agents.voice_agent
-.venv/Scripts/python.exe -m src.agents.escalator_agent
-.venv/Scripts/python.exe -m src.agents.aaa_specialist_agent
+.venv/Scripts/python.exe -m src.agents.preflight_agent "Review case RC-2026-123456"
+.venv/Scripts/python.exe -m src.agents.investigator_agent "Assess the payment history for case RC-2026-123456"
+.venv/Scripts/python.exe -m src.agents.diplomat_agent "Draft the next action for case RC-2026-123456"
 ```
 
 ## Local data model

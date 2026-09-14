@@ -13,7 +13,7 @@ from src.agents._utils import (
     detect_promise_to_pay,
 )
 from src.agents.base import audit
-from src.concierge.band_relay import notify_agent
+from src.concierge.strands_relay import notify_agent
 from src.config import PROJECT_ROOT
 from src.utils.filelock import append_jsonl
 

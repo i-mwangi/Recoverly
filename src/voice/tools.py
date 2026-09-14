@@ -5,7 +5,7 @@ import math
 from typing import Any, Callable, Final
 
 from src.concierge.cards import post_card
-from src.voice.events import log_voice_event, queue_band_room_message
+from src.voice.events import log_voice_event, queue_agent_event
 
 log = logging.getLogger("recoverly.voice.tools")
 
@@ -106,7 +106,7 @@ def log_excuse(case_id: str, params: dict[str, Any]) -> ToolResult:
     log_voice_event(
         "voice_excuse_logged", {"category": category, "detail": detail}, case_id=case_id
     )
-    queue_band_room_message(
+    queue_agent_event(
         case_id,
         CASE_ROOM,
         {"event": "excuse_logged_from_voice", "category": category, "detail": detail},
@@ -128,7 +128,7 @@ def propose_payment_date(case_id: str, params: dict[str, Any]) -> ToolResult:
         {"date": commitment_date, "amount_usd": amount},
         case_id=case_id,
     )
-    queue_band_room_message(
+    queue_agent_event(
         case_id,
         CASE_ROOM,
         {
@@ -153,7 +153,7 @@ def propose_payment_date(case_id: str, params: dict[str, Any]) -> ToolResult:
 
 def request_callback_to_human(case_id: str, params: dict[str, Any]) -> ToolResult:
     log_voice_event("voice_human_callback_requested", {}, case_id=case_id)
-    queue_band_room_message(
+    queue_agent_event(
         case_id, CASE_ROOM, {"event": "human_callback_requested_from_voice"}
     )
     _post_sitrep(
@@ -171,7 +171,7 @@ def escalate_to_concierge(case_id: str, params: dict[str, Any]) -> ToolResult:
         return _error(f"unknown escalation reason: {reason!r}")
 
     log_voice_event("voice_escalated", {"reason": reason}, case_id=case_id)
-    queue_band_room_message(
+    queue_agent_event(
         case_id, CASE_ROOM, {"event": "escalated_from_voice", "reason": reason}
     )
 

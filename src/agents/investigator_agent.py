@@ -4,10 +4,10 @@ import json
 import sys
 from typing import Any, Final
 
-from src.agents._band_push import push_card
+from src.concierge.cards import post_card
 from src.agents._case_state import add_cost, is_halted
 from src.agents._utils import is_error_envelope, parse_json_object
-from src.agents.base import BandAgentAdapter, audit, run_agent
+from src.agents.base import StrandsAgentAdapter, audit, run_agent
 from src.investigator.pattern_tag import (
     PATTERN_TAGS,
     InternalHistorySnapshot,
@@ -100,7 +100,7 @@ def _next_target(case: dict[str, Any]) -> str:
     return "escalator" if days_past_due >= ESCALATOR_HANDOFF_DAYS else "diplomat"
 
 
-class InvestigatorAdapter(BandAgentAdapter):
+class InvestigatorAdapter(StrandsAgentAdapter):
     role = "investigator"
 
     async def handle_message(self, text, msg, tools, history, room_id):
@@ -137,11 +137,12 @@ class InvestigatorAdapter(BandAgentAdapter):
             },
         )
 
-        push_result = push_card(
-            sender_role=self.role,
+        push_result = post_card(
             case_id=case_id,
+            title=f"Investigation summary for case {case_id}",
             card_kind="investigation_summary",
             body=_summary_card(case_id, tag, rationale, snapshot),
+            case_meta=case,
         )
         audit(case_id, self.role, "investigator_summary_card", push_result.as_dict())
 

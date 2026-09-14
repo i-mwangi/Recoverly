@@ -6,7 +6,7 @@ from datetime import date, datetime, timezone
 from typing import Any, Final
 
 from src.agents.base import audit
-from src.concierge.band_relay import notify_agent
+from src.concierge.strands_relay import notify_agent
 from src.concierge.contracts import find_contract_by_buyer
 from src.config import PROJECT_ROOT
 from src.personas import buyer_id_for

@@ -5,7 +5,7 @@ from typing import Any, Final
 
 from src.concierge.actions import dispatch
 from src.concierge.actions.base import build_context
-from src.concierge.band_relay import notify_agent
+from src.concierge.strands_relay import notify_agent
 from src.utils.sanitize import strip_slack_mentions
 from src.voice.security import verify_slack_signature
 

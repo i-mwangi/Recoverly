@@ -7,7 +7,7 @@ from typing import Any, Final
 
 from src.agents._case_state import add_cost, load_case_state, update_case_state
 from src.agents._utils import is_error_envelope, parse_json_object
-from src.agents.base import BandAgentAdapter, audit, extract_case_id, run_agent
+from src.agents.base import StrandsAgentAdapter, audit, extract_case_id, run_agent
 from src.concierge import slack_client
 from src.diplomat.templates import build_context, substitute_placeholders
 from src.llm.provider import complete_async
@@ -115,7 +115,7 @@ def build_override_blocks(
     ]
 
 
-class ToneCoachAdapter(BandAgentAdapter):
+class ToneCoachAdapter(StrandsAgentAdapter):
     role = "tone_coach"
 
     async def handle_message(self, text, msg, tools, history, room_id):

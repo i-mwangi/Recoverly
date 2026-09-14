@@ -10,7 +10,7 @@ from typing import Any, Final
 from src.agents._case_lock import try_acquire
 from src.agents._case_state import add_cost, update_case_state
 from src.agents._utils import parse_json_object, safe_float
-from src.agents.base import BandAgentAdapter, audit, run_agent
+from src.agents.base import StrandsAgentAdapter, audit, run_agent
 from src.config import settings
 from src.llm.provider import complete_async
 from src.preflight.amount_router import select_path
@@ -106,7 +106,7 @@ def document_summary(
     )
 
 
-class PreflightAdapter(BandAgentAdapter):
+class PreflightAdapter(StrandsAgentAdapter):
     role = "preflight"
 
     async def handle_message(self, text, msg, tools, history, room_id):

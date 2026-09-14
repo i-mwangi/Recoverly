@@ -247,7 +247,7 @@ def validate_runtime_config(strict: bool = False) -> list[str]:
     issues: list[str] = []
     if sys.version_info < (3, 11):
         issues.append("[ERROR] Python 3.11+ is required")
-    for module in ("flask", "httpx", "resend", "pypdf", "tzdata"):
+    for module in ("flask", "httpx", "resend", "pypdf", "tzdata", "strands"):
         if importlib.util.find_spec(module) is None:
             issues.append(
                 f"[ERROR] runtime dependency missing: {module}; install requirements.txt"

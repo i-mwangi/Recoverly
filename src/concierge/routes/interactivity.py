@@ -10,7 +10,7 @@ from flask import Blueprint, Response, jsonify, request
 
 from src.concierge.actions import dispatch
 from src.concierge.actions.base import build_context, clean_note
-from src.concierge.band_relay import notify_agent
+from src.concierge.strands_relay import notify_agent
 from src.concierge.slack_client import open_revision_modal
 from src.config import settings
 from src.voice.events import log_voice_event

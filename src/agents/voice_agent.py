@@ -6,7 +6,7 @@ from typing import Any, Final
 
 from src.agents._case_state import is_halted, load_case_state, set_anomaly_halt, update_case_state
 from src.agents._utils import is_error_envelope, parse_json_object
-from src.agents.base import BandAgentAdapter, audit, extract_case_id, run_agent
+from src.agents.base import StrandsAgentAdapter, audit, extract_case_id, run_agent
 from src.concierge.reminders import schedule_commitment_reminder
 from src.voice.dialer import check_calling_window, dry_run_enabled, place_call
 from src.voice.signals import detect_hostile, detect_welfare
@@ -51,7 +51,7 @@ def _match(pattern: re.Pattern[str], text: str, default: str = "") -> str:
     return found.group(1) if found else default
 
 
-class VoiceAdapter(BandAgentAdapter):
+class VoiceAdapter(StrandsAgentAdapter):
     role = "voice"
 
     async def handle_message(self, text, msg, tools, history, room_id):

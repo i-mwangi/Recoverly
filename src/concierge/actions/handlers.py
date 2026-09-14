@@ -15,7 +15,7 @@ from src.concierge.actions.base import (
     register,
     register_prefix,
 )
-from src.concierge.band_relay import notify_agent
+from src.concierge.strands_relay import notify_agent
 from src.concierge.cadence_scheduler import AAA_CADENCE_DAY, stage_for_day
 from src.concierge.cards import post_card
 from src.diplomat.outbound import send_day7_reminder, send_lite_final_notice
@@ -33,12 +33,6 @@ def _aaa_strategy(case_id: str, case: dict[str, Any]) -> str:
         case.get("outstanding_balance_usd") or case.get("amount_balance_usd") or case.get("amount_usd"),
         0.0,
     )
-
-
-def _mirror_to_console(case_id: str, actor: str, body: str, reasoning: str) -> None:
-    from src.local_console.service import append_case_activity
-
-    append_case_activity(case_id, actor, body, reasoning=reasoning)
     filing_fee = filing_fee_estimate(outstanding)
     venue = str(case.get("customer_state") or case.get("buyer_state") or "the buyer's home state")
     return (
@@ -47,6 +41,12 @@ def _mirror_to_console(case_id: str, actor: str, body: str, reasoning: str) -> N
         "3. **Timeline** — six to nine months to an award on documents, and twelve to eighteen months if the matter is fully heard.\n"
         f"4. **Next step** — send a {CURE_WINDOW_DAYS}-day cure letter first. The legal-threat signal requires outbound calling to remain paused while the buyer or counsel has a clear response window."
     )
+
+
+def _mirror_to_console(case_id: str, actor: str, body: str, reasoning: str) -> None:
+    from src.local_console.service import append_case_activity
+
+    append_case_activity(case_id, actor, body, reasoning=reasoning)
 
 
 def _sent_line(result: Any) -> str:

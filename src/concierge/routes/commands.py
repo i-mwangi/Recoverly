@@ -19,7 +19,7 @@ from src.agents._case_state import (
 )
 from src.agents._utils import safe_float
 from src.agents.base import audit
-from src.concierge.band_relay import notify_agent
+from src.concierge.strands_relay import notify_agent
 from src.concierge.cards import post_card
 from src.config import settings
 from src.voice.security import strict_mode, verify_slack_signature

@@ -10,7 +10,7 @@ from typing import Final
 from flask import Blueprint, Response, jsonify, request
 
 from src.agents._case_state import InvalidCaseIdError, validate_case_id
-from src.concierge.band_relay import notify_agent
+from src.concierge.strands_relay import notify_agent
 from src.voice.events import log_voice_event
 from src.voice.security import strict_mode
 

@@ -6,7 +6,7 @@ from typing import Any, Final
 from src.config import PROJECT_ROOT, settings
 from src.utils.filelock import append_jsonl
 
-BAND_ROOM_OUTBOX: Final = PROJECT_ROOT / "data" / "band_room_out.jsonl"
+AGENT_EVENT_OUTBOX: Final = PROJECT_ROOT / "data" / "agent_event_out.jsonl"
 VOICE_SOURCE: Final = "elevenlabs_convai"
 VOICE_AGENT: Final = "voice"
 
@@ -29,9 +29,9 @@ def log_voice_event(event: str, payload: dict[str, Any], case_id: str = "UNKNOWN
     )
 
 
-def queue_band_room_message(case_id: str, channel: str, body: dict[str, Any]) -> None:
+def queue_agent_event(case_id: str, channel: str, body: dict[str, Any]) -> None:
     append_jsonl(
-        BAND_ROOM_OUTBOX,
+        AGENT_EVENT_OUTBOX,
         {
             "ts": _timestamp(),
             "case_id": case_id,

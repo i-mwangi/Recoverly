@@ -7,7 +7,7 @@ from typing import Any, Final
 
 from src.agents._case_lock import release as release_case_lock
 from src.agents._utils import parse_json_object
-from src.agents.base import BandAgentAdapter, audit, run_agent
+from src.agents.base import StrandsAgentAdapter, audit, run_agent
 from src.concierge.cards import DEFAULT_KIND, estimate_case_cost, post_card
 
 DEDUP_WINDOW_SECONDS: Final = 60
@@ -97,7 +97,7 @@ def build_summary(text: str) -> tuple[str, str]:
     return cleaned.split("\n", 1)[0][:SUMMARY_LIMIT], cleaned
 
 
-class ConciergeAdapter(BandAgentAdapter):
+class ConciergeAdapter(StrandsAgentAdapter):
     role = "concierge"
 
     def __init__(self) -> None:
@@ -112,7 +112,7 @@ class ConciergeAdapter(BandAgentAdapter):
             return self._narrate_operator_action(text, forwarded.group("case_id"), "forwarded")
 
         if OPERATOR_ACTION_EVENT_RE.search(text):
-            return self._narrate_operator_action(text, extract_case_id(text), "band_event")
+            return self._narrate_operator_action(text, extract_case_id(text), "agent_event")
 
         if CARD_DECIDED_EVENT_RE.search(text):
             case_id = extract_case_id(text)
@@ -150,7 +150,7 @@ class ConciergeAdapter(BandAgentAdapter):
         if "status" in text.lower() and "agent" in text.lower():
             return (
                 "[Concierge] Online. Connected Recoverly agents are Preflight, Investigator, "
-                "Diplomat, Tone Coach, Band payment, Voice agent, Escalator, and AAA specialist."
+                "Diplomat, Tone Coach, Payment agent, Voice agent, Escalator, and AAA specialist."
             )
 
         return (

@@ -7,7 +7,7 @@ from typing import Any, Final
 
 from src.agents._case_state import load_case_state
 from src.agents._utils import is_error_envelope, parse_json_object, safe_float
-from src.agents.base import BandAgentAdapter, audit, run_agent
+from src.agents.base import StrandsAgentAdapter, audit, run_agent
 from src.diplomat.templates import build_paylink
 from src.payments.base import PaymentProviderError, PaymentResult
 from src.payments.reconciler import reconcile_inbound
@@ -46,7 +46,7 @@ def _load_case(case_id: str) -> dict[str, Any]:
         return {"case_id": case_id}
 
 
-class PaymentAdapter(BandAgentAdapter):
+class PaymentAdapter(StrandsAgentAdapter):
     role = "payment"
 
     async def handle_message(self, text, msg, tools, history, room_id):
