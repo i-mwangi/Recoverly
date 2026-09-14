@@ -48,6 +48,10 @@
 
   <form class="card methods" action="/pay/{{case_id}}/start" method="post">
     <h2>Choose a payment method</h2>
+    <button class="method" type="submit" name="method" value="card">
+      <span><h3>Pay by card with Paystack</h3><p>Secure hosted checkout</p></span>
+      <span class="eta">Continue</span>
+    </button>
     <label class="amount-input" for="hashpack-amount">USDC amount to pay
       <input id="hashpack-amount" type="number" min="0.000001" max="{{amount_raw}}" step="0.000001" value="{{amount_raw}}" inputmode="decimal">
     </label>

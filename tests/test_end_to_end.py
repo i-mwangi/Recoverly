@@ -337,7 +337,7 @@ def test_checkout_renders_hashpack_wallet_configuration(flask_client, monkeypatc
     response = flask_client.get(f"/pay/{CASE}")
     assert response.status_code == 200
     assert b"Pay USDC with HashPack" in response.data
-    assert b"Pay by card with Paystack" not in response.data
+    assert b"Pay by card with Paystack" in response.data
     assert b"walletconnect-project" in response.data
     assert b"recoverly:" in response.data
 
