@@ -20,6 +20,7 @@ RecoverlyAgent/agentcore/.cli/
 RecoverlyAgent/agentcore/.llm-context/
 RecoverlyAgent/agentcore/RecoverlyAgent/
 RecoverlyAgent/agentcore/*.zip
+RecoverlyAgent/app/
 
 logs/
 *.log
