@@ -68,6 +68,7 @@ flowchart LR
     A[Slack: contract + invoice] --> B[Concierge and intake pairing]
     B --> Q[Case queue]
     T[Persistent APScheduler job] --> S[Recoverly Strands agent]
+    AC[Amazon Bedrock AgentCore Runtime] -. Optional managed deployment .-> S
     Q --> S
     S --> C[list_actionable_cases tool]
     C --> R{Deterministic policy}
