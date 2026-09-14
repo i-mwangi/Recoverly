@@ -26,12 +26,7 @@ data/audit_trail.jsonl
 data/chroma/
 data/attachments/
 
-# Local tests and verification artifacts
-tests/
-test_*.py
-*_test.py
-pytest.ini
-TEST_REPORT.md
+# Local verification artifacts
 htmlcov/
 coverage.xml
 
