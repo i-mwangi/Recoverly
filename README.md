@@ -181,30 +181,6 @@ The local server listens on `http://127.0.0.1:8400` by default.
 
 For Slack or Twilio callbacks during a local demo, expose port 8400 through ngrok and use the resulting HTTPS URL in the provider configuration.
 
-## Devpost demo guide
-
-Use a controlled Slack channel, test payment credentials, and a controlled recipient address for the demonstration.
-
-1. In `.env`, configure the Qwen key, Slack credentials, Resend test sender and recipient, and the Paystack test key. Set `PAYSTACK_CALLBACK_URL` to `https://YOUR-NGROK-URL/webhooks/paystack` and `RECOVERLY_PAYLINK_BASE` to `https://YOUR-NGROK-URL/pay`.
-2. Start Recoverly in one terminal:
-
-   ```powershell
-   .venv/Scripts/python.exe -m tools.config_check
-   .venv/Scripts/python.exe -m src.webapp
-   ```
-
-3. Start a public tunnel in another terminal:
-
-   ```powershell
-   ngrok http 8400
-   ```
-
-   Add the HTTPS tunnel URL to the Slack event and interactivity request URLs, plus the Paystack webhook callback URL.
-4. Upload a contract and invoice PDF to the configured Slack channel. Recoverly creates and enriches the recovery case. During a short demo, set `AUTONOMOUS_AGENT_INTERVAL_MINUTES=1` before starting the app; restore `15` afterward for normal operation.
-5. Show that routine, low-risk cases receive their next action without an operator. For a disputed, high-value, or anomalous case, show Recoverly posting a Slack decision card instead of continuing automatically.
-6. Open `/pay/<case_id>`, choose **Card via Paystack**, and complete a Paystack test checkout. The signed `charge.success` webhook reconciles the payment and updates the case. Open `/console` only to show the resulting audit activity and payment receipt.
-7. End by showing the autonomous-worker policy: it handles ordinary reminders in the background and routes consequential recovery decisions to Slack.
-
 ## Payments
 
 The buyer opens `/pay/<case_id>` and selects a configured payment method. The saved case supplies the amount and invoice context. Confirmation depends on the selected provider; opening checkout or displaying instructions does not itself confirm payment.
