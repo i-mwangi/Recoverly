@@ -4,6 +4,7 @@
 # CDK Build Artifacts
 cdk/cdk.out/
 cdk/node_modules/
+cdk/package-lock.json
 
 # CLI Internals
 .cli/*

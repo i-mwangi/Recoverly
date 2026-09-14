@@ -237,7 +237,7 @@ All other situations use `request_operator_decision`, which posts one evidence-b
 
 ## AgentCore deployment
 
-Recoverly includes an Amazon Bedrock AgentCore Runtime project in `RecoverlyAgent/`. Its runtime entrypoint is `src/agentcore_runtime.py`, which invokes the existing autonomous Strands worker. Set `RECOVERLY_MODEL_PROVIDER=bedrock` and an enabled `BEDROCK_MODEL_ID` for the deployed runtime so it uses the runtime IAM role rather than a Qwen API key. See [AgentCore deployment](DEPLOY_AGENTCORE.md) for the AWS CLI, model access, packaging, deployment, and scheduler steps.
+Recoverly includes an Amazon Bedrock AgentCore Runtime project in `RecoverlyAgent/`. Its runtime entrypoint is `src/agentcore_runtime.py`, which invokes the existing autonomous Strands worker. Set `RECOVERLY_MODEL_PROVIDER=bedrock` and an enabled `BEDROCK_MODEL_ID` for the deployed runtime so it uses the runtime IAM role rather than a Qwen API key. From `RecoverlyAgent/`, run `agentcore validate`, `agentcore package`, then `agentcore deploy`.
 
 The normal flow runs through `python -m src.webapp`. A role can also be invoked directly for development by passing a task after the module name:
 

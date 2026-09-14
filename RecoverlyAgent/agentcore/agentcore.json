@@ -15,7 +15,36 @@
       "codeLocation": "../src",
       "runtimeVersion": "PYTHON_3_14",
       "networkMode": "PUBLIC",
-      "protocol": "HTTP"
+      "protocol": "HTTP",
+      "instrumentation": {
+        "enableOtel": true
+      },
+      "lifecycleConfiguration": {
+        "idleRuntimeSessionTimeout": 300,
+        "maxLifetime": 900
+      },
+      "envVars": [
+        {
+          "name": "RECOVERLY_MODEL_PROVIDER",
+          "value": "bedrock"
+        },
+        {
+          "name": "BEDROCK_MODEL_ID",
+          "value": "anthropic.claude-haiku-4-5-20251001-v1:0"
+        },
+        {
+          "name": "STRANDS_ENABLED",
+          "value": "1"
+        },
+        {
+          "name": "AUTONOMOUS_AGENT_ENABLED",
+          "value": "1"
+        },
+        {
+          "name": "AUTONOMOUS_MAX_BALANCE_USD",
+          "value": "20000"
+        }
+      ]
     }
   ],
   "memories": [],
