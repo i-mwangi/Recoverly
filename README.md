@@ -2,6 +2,12 @@
 
 Recoverly is an autonomous Professional Agent for Kenyan coffee and tea exporters managing overdue B2B invoices. Built with the Strands Agents SDK, it wakes on a persistent schedule, finds cases that need attention, sends safe routine reminders, watches for payment, and asks an operator in Slack only when a dispute, anomaly, high-value balance, call, final notice, or legal step requires judgment.
 
+## Agents for Humans Hackathon
+
+Recoverly is built for the [Agents for Humans Hackathon](https://agentsforhumans.devpost.com/) in the **Professional Agents** track. It removes repetitive accounts-receivable work: monitoring overdue invoices, choosing safe routine follow-up, sending reminders, and matching confirmed payments to cases. The Strands agent works in the background and surfaces only decisions that need human judgment.
+
+**Slack is the main operator surface.** Teams use it for document intake and the approve, revise, or reject decisions that Recoverly requests. The HTML console at `/console` is still usable, but it is an optional local audit dashboard for showing case history and agent activity during a demo; it is not required to operate the agent.
+
 The primary demonstration flow is:
 
 1. Upload a contract and invoice to the Recoverly Slack channel.
@@ -175,6 +181,30 @@ The local server listens on `http://127.0.0.1:8400` by default.
 
 For Slack or Twilio callbacks during a local demo, expose port 8400 through ngrok and use the resulting HTTPS URL in the provider configuration.
 
+## Devpost demo guide
+
+Use a controlled Slack channel, test payment credentials, and a controlled recipient address for the demonstration.
+
+1. In `.env`, configure the Qwen key, Slack credentials, Resend test sender and recipient, and the Paystack test key. Set `PAYSTACK_CALLBACK_URL` to `https://YOUR-NGROK-URL/webhooks/paystack` and `RECOVERLY_PAYLINK_BASE` to `https://YOUR-NGROK-URL/pay`.
+2. Start Recoverly in one terminal:
+
+   ```powershell
+   .venv/Scripts/python.exe -m tools.config_check
+   .venv/Scripts/python.exe -m src.webapp
+   ```
+
+3. Start a public tunnel in another terminal:
+
+   ```powershell
+   ngrok http 8400
+   ```
+
+   Add the HTTPS tunnel URL to the Slack event and interactivity request URLs, plus the Paystack webhook callback URL.
+4. Upload a contract and invoice PDF to the configured Slack channel. Recoverly creates and enriches the recovery case. During a short demo, set `AUTONOMOUS_AGENT_INTERVAL_MINUTES=1` before starting the app; restore `15` afterward for normal operation.
+5. Show that routine, low-risk cases receive their next action without an operator. For a disputed, high-value, or anomalous case, show Recoverly posting a Slack decision card instead of continuing automatically.
+6. Open `/pay/<case_id>`, choose **Card via Paystack**, and complete a Paystack test checkout. The signed `charge.success` webhook reconciles the payment and updates the case. Open `/console` only to show the resulting audit activity and payment receipt.
+7. End by showing the autonomous-worker policy: it handles ordinary reminders in the background and routes consequential recovery decisions to Slack.
+
 ## Payments
 
 The buyer opens `/pay/<case_id>` and selects a configured payment method. The saved case supplies the amount and invoice context. Confirmation depends on the selected provider; opening checkout or displaying instructions does not itself confirm payment.
@@ -275,4 +305,4 @@ Tests use isolated temporary data and test doubles for external services. They d
 
 ## License
 
-No license has been selected yet. Add an open-source license before public distribution.
+Recoverly is available under the [MIT License](LICENSE).
