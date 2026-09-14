@@ -33,7 +33,7 @@ Recoverly connects to more than three external applications in the working flow:
 | App / service | How Recoverly uses it |
 |---|---|
 | Slack | Contract and invoice intake, operator approvals, recovery cards, and payment receipts |
-| Payment options | Paystack card checkout, Hedera USDC transfers, and wire/ACH bank instructions; confirmation follows the selected method |
+| Payment options | Paystack card checkout, on-chain USDC transfers, and wire/ACH bank instructions; confirmation follows the selected method |
 | Resend | Approved demand/reminder email delivery and settlement notifications |
 | Gmail | Inbox used in the demo to receive and review collection notices and payment receipts; email delivery uses Resend, with no direct Gmail API integration |
 | Twilio | Operator-approved buyer calls and call-status updates |
@@ -57,7 +57,7 @@ Recoverly is tested with an isolated automated suite covering case intake, docum
 - **Decision-only interruption** — Slack cards appear for disputes, anomalies, high balances, calls, final notices, and escalation actions.
 - **Professional communications** — builds invoice reminders, demand-letter drafts, email messages, and call scripts.
 - **Voice escalation** — uses Twilio for approved buyer calls and records the outcome in the case activity.
-- **Payments** — offers configured payment methods and reconciles confirmed amounts against the case balance. Available methods are Paystack cards, Hedera USDC, wire transfers, and ACH instructions. See [Payments](#payments) for confirmation details.
+- **Payments** — offers configured payment methods and reconciles confirmed amounts against the case balance. Available methods are Paystack cards, on-chain USDC transfers, wire transfers, and ACH instructions. See [Payments](#payments) for confirmation details.
 - **Local operator console** — shows case activity and agent progress at `/console`.
 - **Auditable local state** — keeps case state, activity, payment ledger entries, and audit events locally for the prototype.
 
@@ -76,7 +76,7 @@ flowchart LR
     E -->|Approve or revise| G[Specialized recovery action]
     F --> H{Payment portal: selected method}
     H --> P[Card: Paystack]
-    H --> U[USDC: Hedera / HashPack]
+    H --> U[On-chain USDC transfer]
     H --> W[Wire / ACH bank instructions]
     P --> V[Verify signed provider webhook]
     U --> M[Verify Mirror Node API response]
@@ -127,8 +127,8 @@ recoverly/
 | AI workflow | OpenAI-compatible LLM provider | Drafting, analysis, tone review, and role-specific recommendations |
 | Email | Resend; Gmail inbox in demo | Resend sends notices and receipts; Gmail displays received messages |
 | Voice | Twilio | Approved buyer calls and call-status webhooks |
-| Payments | Paystack cards, Hedera USDC, wire / ACH | Method-specific checkout or instructions and payment reconciliation |
-| Wallet | HashPack | Demo buyer wallet used to send USDC |
+| Payments | Paystack cards, on-chain USDC transfers, wire / ACH | Method-specific checkout or instructions and payment reconciliation |
+| Wallet | Compatible USDC wallet | Buyer wallet used to send an on-chain USDC transfer |
 | Document handling | pypdf | Contract and invoice text extraction |
 | Local exposure | ngrok | Public HTTPS URLs for local webhook demonstrations |
 | Storage | JSON and JSONL files | Prototype case state, audit trail, and watcher state |
@@ -190,7 +190,7 @@ The buyer opens `/pay/<case_id>` and selects a configured payment method. The sa
 | Method | Payment flow | Confirmation |
 |---|---|---|
 | Card via Paystack | Creates a checkout session and redirects the buyer to the provider | A signed `charge.success` webhook reconciles the payment to the case |
-| USDC via Hedera | Provides receiving account, token, amount, and `recoverly:<case_id>` memo; buyer pays with a wallet such as HashPack | The separate wallet watcher reads Mirror Node API responses, matches the transfer, and reconciles it |
+| On-chain USDC transfer | Provides receiving account, token, amount, and `recoverly:<case_id>` memo; buyer pays with a compatible wallet | The separate wallet watcher verifies the provider response, matches the transfer, and reconciles it |
 | Wire transfer | Displays configured bank details and invoice reference | Operator confirms receipt using a transaction reference |
 | ACH | Uses the configured bank-instruction flow | Operator confirms receipt; no automatic bank API monitoring is implemented |
 
@@ -205,7 +205,7 @@ Configure the variables for the methods you intend to offer:
 | Method | Environment variables |
 |---|---|
 | Card via Paystack | `PAYSTACK_SECRET_KEY`, `PAYSTACK_CALLBACK_URL`; configure `/webhooks/paystack` for settlement events |
-| USDC via Hedera | `HEDERA_NETWORK`, `HEDERA_RECEIVING_ACCOUNT_ID`, `HEDERA_USDC_TOKEN_ID`, optional `HEDERA_MIRROR_NODE`, `WALLET_POLL_INTERVAL_SEC` |
+| On-chain USDC transfer | `HEDERA_NETWORK`, `HEDERA_RECEIVING_ACCOUNT_ID`, `HEDERA_USDC_TOKEN_ID`, optional `HEDERA_MIRROR_NODE`, `WALLET_POLL_INTERVAL_SEC` |
 | Wire / ACH instructions | `WIRE_BENEFICIARY_NAME`, `WIRE_BANK_NAME`, `WIRE_BANK_ADDRESS`, `WIRE_SWIFT_BIC`, `WIRE_ACCOUNT_NUMBER`, `WIRE_ROUTING_CODE` |
 | Shared payment links | `RECOVERLY_PAYLINK_BASE` pointing to the public application URL ending in `/pay` |
 
@@ -256,7 +256,7 @@ data/
 ├── case_state/                 # Per-case JSON state
 ├── local_console/sessions.json # Console sessions and activity
 ├── audit_trail.jsonl           # Append-only audit events
-├── wallet_poller_state.json    # Hedera watcher cursor and deduplication state
+├── wallet_poller_state.json    # On-chain watcher cursor and deduplication state
 ├── processed_transactions.json # Applied transaction identifiers
 └── wallet_case_ledger.json     # Wallet-to-case associations
 ```
