@@ -1,6 +1,7 @@
 # Python 3.11+. Verified with Python 3.14.6 on Windows.
 python-dotenv>=1.0,<2
 strands-agents[openai]>=1.55,<2
+bedrock-agentcore>=1.23,<2
 apscheduler>=3.11,<4
 sqlalchemy>=2,<3
 flask>=3.0,<4

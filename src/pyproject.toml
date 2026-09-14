@@ -1,0 +1,22 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "recoverly-agentcore-runtime"
+version = "0.1.0"
+description = "Recoverly autonomous Strands agent for Amazon Bedrock AgentCore"
+requires-python = ">=3.11"
+dependencies = [
+    "apscheduler>=3.11,<4",
+    "bedrock-agentcore>=1.23,<2",
+    "flask>=3.0,<4",
+    "httpx>=0.27,<1",
+    "python-dotenv>=1.0,<2",
+    "resend>=2.44,<3",
+    "sqlalchemy>=2,<3",
+    "strands-agents[openai]>=1.55,<2",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["."]

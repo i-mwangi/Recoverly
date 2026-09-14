@@ -3,10 +3,11 @@ from __future__ import annotations
 import json
 import logging
 import os
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
 from typing import Any, Final
 
 from strands import Agent, tool
+from strands.models import BedrockModel
 from strands.models.openai import OpenAIModel
 
 from src.agents import _case_state
@@ -38,7 +39,7 @@ ROUTINE_MAX_DAY: Final = 14
 def _today(value: str = "") -> date:
     if value:
         return date.fromisoformat(value)
-    return datetime.now(timezone.utc).date()
+    return datetime.now(UTC).date()
 
 
 def _days_past_due(case: dict[str, Any], reference: date) -> int | None:
@@ -51,6 +52,23 @@ def _days_past_due(case: dict[str, Any], reference: date) -> int | None:
 
 def _max_auto_balance() -> float:
     return safe_float(os.getenv("AUTONOMOUS_MAX_BALANCE_USD"), 20000.0)
+
+
+def _uses_bedrock() -> bool:
+    return os.getenv("RECOVERLY_MODEL_PROVIDER", "qwen").strip().lower() == "bedrock"
+
+
+def _model() -> BedrockModel | OpenAIModel:
+    if _uses_bedrock():
+        model_id = os.getenv("BEDROCK_MODEL_ID", "").strip()
+        if not model_id:
+            raise ValueError("BEDROCK_MODEL_ID must be set when RECOVERLY_MODEL_PROVIDER=bedrock")
+        return BedrockModel(model_id=model_id)
+    return OpenAIModel(
+        client_args={"api_key": api_key(), "base_url": base_url()},
+        model_id=resolve_model("concierge"),
+        params={"max_tokens": int(os.getenv("STRANDS_MAX_TOKENS", "800")), "temperature": 0.1},
+    )
 
 
 def _risk_reason(case: dict[str, Any], days: int | None) -> str:
@@ -192,17 +210,13 @@ def request_operator_decision(case_id: str, reason: str, reference_date: str = "
 def enabled() -> bool:
     value = os.getenv("AUTONOMOUS_AGENT_ENABLED", "1").strip().lower()
     strands = os.getenv("STRANDS_ENABLED", "1").strip().lower()
-    return value in {"1", "true", "yes", "on"} and strands in {"1", "true", "yes", "on"} and bool(api_key())
+    model_available = bool(os.getenv("BEDROCK_MODEL_ID", "").strip()) if _uses_bedrock() else bool(api_key())
+    return value in {"1", "true", "yes", "on"} and strands in {"1", "true", "yes", "on"} and model_available
 
 
 def build_agent() -> Agent:
-    model = OpenAIModel(
-        client_args={"api_key": api_key(), "base_url": base_url()},
-        model_id=resolve_model("concierge"),
-        params={"max_tokens": int(os.getenv("STRANDS_MAX_TOKENS", "800")), "temperature": 0.1},
-    )
     return Agent(
-        model=model,
+        model=_model(),
         tools=[list_actionable_cases, auto_send_routine_reminder, request_operator_decision],
         system_prompt=SYSTEM_PROMPT,
         callback_handler=None,
@@ -215,7 +229,7 @@ def build_agent() -> Agent:
 def run_cycle(reference_date: str = "") -> dict[str, Any]:
     if not enabled():
         return {"ok": False, "status": "disabled"}
-    cycle_id = datetime.now(timezone.utc).isoformat()
+    cycle_id = datetime.now(UTC).isoformat()
     prompt = f"Run the complete recovery cycle for UTC date {reference_date or _today().isoformat()}. Use the tools now."
     try:
         result = build_agent()(prompt)
