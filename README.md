@@ -2,8 +2,6 @@
 
 Recoverly is an autonomous Professional Agent for Kenyan coffee and tea exporters managing overdue B2B invoices. Built with the Strands Agents SDK, it wakes on a persistent schedule, finds cases that need attention, sends safe routine reminders, watches for payment, and asks an operator in Slack only when a dispute, anomaly, high-value balance, call, final notice, or legal step requires judgment.
 
-**[▶ Watch the Recoverly demo on YouTube](https://www.youtube.com/watch?v=4p-7WtbMgEM)**
-
 The primary demonstration flow is:
 
 1. Upload a contract and invoice to the Recoverly Slack channel.
@@ -43,10 +41,6 @@ Follow the [Quick start](#quick-start) section to install Python dependencies, c
 ### 4. Reliability testing
 
 Recoverly is tested with an isolated automated suite covering case intake, document pairing, approval actions, payment routing, payment transfer matching, reconciliation, deduplication, and notification handling. Tests replace external network calls with controlled doubles, so they do not send real emails, place calls, or move funds. Run the checks in [Testing](#testing). The recorded payment path demonstrates USDC transfer verification before settlement; it does not establish live verification of every payment option.
-
-### 5. Demo video
-
-[Watch the Recoverly demo on YouTube](https://www.youtube.com/watch?v=4p-7WtbMgEM)
 
 ## Features
 
