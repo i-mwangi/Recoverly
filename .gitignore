@@ -16,6 +16,10 @@ coverage.json
 .mypy_cache/
 node_modules/
 .DS_Store
+RecoverlyAgent/agentcore/.cli/
+RecoverlyAgent/agentcore/.llm-context/
+RecoverlyAgent/agentcore/RecoverlyAgent/
+RecoverlyAgent/agentcore/*.zip
 
 logs/
 *.log

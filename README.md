@@ -122,6 +122,7 @@ recoverly/
 | Application | Python and Flask | Webhooks, payment portal, local console, and HTTP routes |
 | Agent runtime | Strands Agents SDK | Autonomous reasoning cycle and consequential recovery tools |
 | Background work | APScheduler with a SQLite job store | Persistent 15-minute recovery cycle with one concurrent run |
+| Managed deployment | Amazon Bedrock AgentCore Runtime | Optional serverless hosting, versioning, and observability for the Strands worker |
 | Collaboration | Slack Events API, Block Kit, and interactive actions | Intake, operator approvals, and case notifications |
 | AI workflow | OpenAI-compatible LLM provider | Drafting, analysis, tone review, and role-specific recommendations |
 | Email | Resend; Gmail inbox in demo | Resend sends notices and receipts; Gmail displays received messages |
@@ -233,6 +234,10 @@ The operator reviews all approve/revise/reject cards in that channel. Do not ena
 Starting the Flask application also starts an APScheduler interval job backed by `data/recoverly_jobs.sqlite`. Every 15 minutes, one Recoverly agent built with the Strands Agents SDK calls `list_actionable_cases`, then executes the tool assigned to every returned case. `auto_send_routine_reminder` performs real Resend delivery only for ordinary cases that are 7–14 days overdue, below the configured balance ceiling, have a recipient, are open, and contain no dispute, legal-threat, anomaly, or halt signal. The tool records a receipt and cannot send twice on the same day.
 
 All other situations use `request_operator_decision`, which posts one evidence-based Slack card and waits for approve, revise, or reject input. Calls, final notices, and legal actions always require a person. Payment webhooks and watchers continue the workflow by matching provider-confirmed transfers and closing or updating the case. The browser console is an optional audit view; operators do not need to keep it open or manage the routine queue.
+
+## AgentCore deployment
+
+Recoverly includes an Amazon Bedrock AgentCore Runtime project in `RecoverlyAgent/`. Its runtime entrypoint is `src/agentcore_runtime.py`, which invokes the existing autonomous Strands worker. Set `RECOVERLY_MODEL_PROVIDER=bedrock` and an enabled `BEDROCK_MODEL_ID` for the deployed runtime so it uses the runtime IAM role rather than a Qwen API key. See [AgentCore deployment](DEPLOY_AGENTCORE.md) for the AWS CLI, model access, packaging, deployment, and scheduler steps.
 
 The normal flow runs through `python -m src.webapp`. A role can also be invoked directly for development by passing a task after the module name:
 
